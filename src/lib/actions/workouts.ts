@@ -118,6 +118,36 @@ export async function removeWorkoutExercise(
   return { error: null };
 }
 
+/**
+ * Herschikt de oefeningen in een schema: schrijft de position-waarden opnieuw
+ * volgens de meegegeven volgorde van id's. positions starten bij 1, net als
+ * bij toevoegen. De .eq("workout_id") zorgt dat alleen rijen uit dít schema
+ * worden aangeraakt.
+ */
+export async function reorderWorkoutExercises(
+  workoutId: string,
+  orderedIds: string[],
+): Promise<WorkoutFormState> {
+  const supabase = await createClient();
+
+  const results = await Promise.all(
+    orderedIds.map((id, index) =>
+      supabase
+        .from("workout_exercises")
+        .update({ position: index + 1 })
+        .eq("id", id)
+        .eq("workout_id", workoutId),
+    ),
+  );
+
+  if (results.some((result) => result.error)) {
+    return { error: "Volgorde opslaan mislukt. Probeer het opnieuw." };
+  }
+
+  revalidatePath(`/workouts/${workoutId}`);
+  return { error: null };
+}
+
 // ---------------------------------------------------------------------------
 // Targets per oefening
 // ---------------------------------------------------------------------------
