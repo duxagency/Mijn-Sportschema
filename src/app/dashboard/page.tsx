@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/auth/SignOutButton";
@@ -34,14 +35,18 @@ export default async function DashboardPage() {
         <SignOutButton />
       </header>
 
-      <section className="mt-8 rounded-xl border border-neutral-800 bg-neutral-950 p-6">
-        <h2 className="text-lg font-medium text-neutral-100">
-          Je bent ingelogd
-        </h2>
-        <p className="mt-2 text-sm text-neutral-400">
-          De fundering staat. In een volgende fase bouwen we hier de
-          schema-builder, trainingen en je voortgang.
-        </p>
+      <section className="mt-8">
+        <Link
+          href="/exercises"
+          className="block rounded-xl border border-neutral-800 bg-neutral-950 p-6 transition hover:border-neutral-600"
+        >
+          <h2 className="text-lg font-medium text-neutral-100">
+            Oefeningenbibliotheek →
+          </h2>
+          <p className="mt-2 text-sm text-neutral-400">
+            Bekijk, voeg toe en beheer de gedeelde oefeningen.
+          </p>
+        </Link>
       </section>
     </main>
   );
