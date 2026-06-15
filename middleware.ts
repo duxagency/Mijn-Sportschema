@@ -7,6 +7,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    // De root expliciet meenemen zodat de middleware ook "/" beschermt.
+    "/",
     /*
      * Draai op alle paden behalve:
      * - _next/static (statische bestanden)
