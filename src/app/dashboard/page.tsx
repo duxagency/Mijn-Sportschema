@@ -35,7 +35,18 @@ export default async function DashboardPage() {
         <SignOutButton />
       </header>
 
-      <section className="mt-8">
+      <section className="mt-8 grid gap-4 sm:grid-cols-2">
+        <Link
+          href="/workouts"
+          className="block rounded-xl border border-neutral-800 bg-neutral-950 p-6 transition hover:border-neutral-600"
+        >
+          <h2 className="text-lg font-medium text-neutral-100">
+            Mijn schema&apos;s →
+          </h2>
+          <p className="mt-2 text-sm text-neutral-400">
+            Bouw en beheer je eigen trainingsschema&apos;s.
+          </p>
+        </Link>
         <Link
           href="/exercises"
           className="block rounded-xl border border-neutral-800 bg-neutral-950 p-6 transition hover:border-neutral-600"
