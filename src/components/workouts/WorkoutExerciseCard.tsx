@@ -1,3 +1,7 @@
+"use client";
+
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { Tables } from "@/types/database.types";
 import type { TargetKey } from "@/lib/targets";
 import { MetricBadges } from "@/components/exercises/MetricBadges";
@@ -22,10 +26,39 @@ export function WorkoutExerciseCard({
 }) {
   const { exercise } = workoutExercise;
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: workoutExercise.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   return (
-    <li className="rounded-lg border border-neutral-800 bg-neutral-950 p-4">
+    <li
+      ref={setNodeRef}
+      style={style}
+      className={`rounded-lg border border-neutral-800 bg-neutral-950 p-4 ${
+        isDragging ? "relative z-10 opacity-80 shadow-lg shadow-black/40" : ""
+      }`}
+    >
       <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-2">
+          <button
+            type="button"
+            aria-label="Sleep om te herschikken"
+            className="-ml-1 mt-0.5 cursor-grab touch-none rounded p-1 text-neutral-500 hover:text-neutral-300 active:cursor-grabbing"
+            {...attributes}
+            {...listeners}
+          >
+            <GripIcon />
+          </button>
           <span className="mt-0.5 text-sm tabular-nums text-neutral-500">
             {index + 1}.
           </span>
@@ -58,5 +91,25 @@ export function WorkoutExerciseCard({
         />
       </div>
     </li>
+  );
+}
+
+/** Greep-icoon (twee rijen puntjes) voor het slepen. */
+function GripIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <circle cx="5.5" cy="3.5" r="1.4" />
+      <circle cx="10.5" cy="3.5" r="1.4" />
+      <circle cx="5.5" cy="8" r="1.4" />
+      <circle cx="10.5" cy="8" r="1.4" />
+      <circle cx="5.5" cy="12.5" r="1.4" />
+      <circle cx="10.5" cy="12.5" r="1.4" />
+    </svg>
   );
 }

@@ -3,10 +3,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AddExerciseForm } from "@/components/workouts/AddExerciseForm";
 import { DeleteWorkoutButton } from "@/components/workouts/DeleteWorkoutButton";
-import {
-  WorkoutExerciseCard,
-  type WorkoutExerciseWithExercise,
-} from "@/components/workouts/WorkoutExerciseCard";
+import { SortableExerciseList } from "@/components/workouts/SortableExerciseList";
+import type { WorkoutExerciseWithExercise } from "@/components/workouts/WorkoutExerciseCard";
 
 export default async function WorkoutDetailPage({
   params,
@@ -61,16 +59,7 @@ export default async function WorkoutDetailPage({
       </section>
 
       {exercises.length > 0 ? (
-        <ol className="mt-6 flex flex-col gap-3">
-          {exercises.map((workoutExercise, index) => (
-            <WorkoutExerciseCard
-              key={workoutExercise.id}
-              workoutExercise={workoutExercise}
-              workoutId={workout.id}
-              index={index}
-            />
-          ))}
-        </ol>
+        <SortableExerciseList exercises={exercises} workoutId={workout.id} />
       ) : (
         <p className="mt-10 text-center text-sm text-neutral-400">
           Nog geen oefeningen in dit schema. Voeg er hierboven een toe.
