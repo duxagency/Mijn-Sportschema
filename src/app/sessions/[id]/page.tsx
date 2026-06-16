@@ -1,0 +1,154 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import type { Tables } from "@/types/database.types";
+import type { TargetKey } from "@/lib/targets";
+import type { SetInput } from "@/lib/actions/session-types";
+import { EMPTY_SET } from "@/lib/actions/session-types";
+import { formatDuration, formatSessionDate } from "@/lib/format";
+import { TrainingFlow, type FlowExercise } from "@/components/sessions/TrainingFlow";
+import {
+  SessionReview,
+  type ReviewExercise,
+} from "@/components/sessions/SessionReview";
+import { DeleteSessionButton } from "@/components/sessions/DeleteSessionButton";
+
+type WorkoutExerciseRow = Pick<
+  Tables<"workout_exercises">,
+  "id" | "position" | TargetKey
+> & { exercise: Tables<"exercises"> };
+
+const numToStr = (value: number | null) => (value == null ? "" : String(value));
+
+export default async function SessionPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const supabase = await createClient();
+
+  const { data: session } = await supabase
+    .from("sessions")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (!session) {
+    notFound();
+  }
+
+  const [{ data: workout }, { data: workoutExercises }, { data: sets }] =
+    await Promise.all([
+      supabase
+        .from("workouts")
+        .select("name")
+        .eq("id", session.workout_id)
+        .single(),
+      supabase
+        .from("workout_exercises")
+        .select(
+          "id, position, target_sets, target_reps, target_weight, target_minutes, target_distance, exercise:exercises(*)",
+        )
+        .eq("workout_id", session.workout_id)
+        .order("position", { ascending: true }),
+      supabase
+        .from("session_sets")
+        .select("*")
+        .eq("session_id", id)
+        .order("set_number", { ascending: true }),
+    ]);
+
+  const exercises = (workoutExercises ?? []) as WorkoutExerciseRow[];
+  const workoutName = workout?.name ?? "Training";
+
+  // Sets groeperen per workout_exercise.
+  const setsByExercise: Record<string, Tables<"session_sets">[]> = {};
+  for (const set of sets ?? []) {
+    (setsByExercise[set.workout_exercise_id] ??= []).push(set);
+  }
+
+  const targetsOf = (row: WorkoutExerciseRow): Record<TargetKey, number | null> => ({
+    target_sets: row.target_sets,
+    target_reps: row.target_reps,
+    target_weight: row.target_weight,
+    target_minutes: row.target_minutes,
+    target_distance: row.target_distance,
+  });
+
+  // -------------------------------------------------------------------------
+  // Afgeronde training: alleen-lezen terugblik.
+  // -------------------------------------------------------------------------
+  if (session.finished_at) {
+    const reviewExercises: ReviewExercise[] = exercises.map((row) => ({
+      workoutExerciseId: row.id,
+      exercise: row.exercise,
+      targets: targetsOf(row),
+    }));
+
+    return (
+      <main className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-10">
+        <header className="flex items-start justify-between gap-4 border-b border-neutral-800 pb-6">
+          <div>
+            <Link
+              href="/sessions"
+              className="text-sm text-neutral-400 underline-offset-4 hover:text-neutral-200 hover:underline"
+            >
+              ← Mijn trainingen
+            </Link>
+            <h1 className="mt-1 text-2xl font-semibold text-neutral-100">
+              {workoutName}
+            </h1>
+            <p className="mt-1 text-sm text-neutral-400">
+              {formatSessionDate(session.started_at)} ·{" "}
+              {formatDuration(session.started_at, session.finished_at)}
+            </p>
+          </div>
+          <DeleteSessionButton
+            sessionId={session.id}
+            label="Verwijderen"
+            confirmText="Deze training uit je historie verwijderen?"
+          />
+        </header>
+
+        <SessionReview
+          exercises={reviewExercises}
+          setsByExercise={setsByExercise}
+        />
+      </main>
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // Lopende training: de invoerflow.
+  // -------------------------------------------------------------------------
+  const flowExercises: FlowExercise[] = exercises.map((row) => {
+    const existing = setsByExercise[row.id] ?? [];
+    const initialSets: SetInput[] =
+      existing.length > 0
+        ? existing.map((set) => ({
+            reps: numToStr(set.reps),
+            weight: numToStr(set.weight),
+            minutes: numToStr(set.minutes),
+            distance: numToStr(set.distance),
+          }))
+        : Array.from({ length: Math.max(1, row.target_sets ?? 1) }, () => ({
+            ...EMPTY_SET,
+          }));
+
+    return {
+      workoutExerciseId: row.id,
+      exercise: row.exercise,
+      targets: targetsOf(row),
+      initialSets,
+    };
+  });
+
+  return (
+    <TrainingFlow
+      sessionId={session.id}
+      workoutName={workoutName}
+      exercises={flowExercises}
+    />
+  );
+}

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AddExerciseForm } from "@/components/workouts/AddExerciseForm";
 import { DeleteWorkoutButton } from "@/components/workouts/DeleteWorkoutButton";
+import { StartTrainingButton } from "@/components/sessions/StartTrainingButton";
 import { SortableExerciseList } from "@/components/workouts/SortableExerciseList";
 import type { WorkoutExerciseWithExercise } from "@/components/workouts/WorkoutExerciseCard";
 
@@ -53,6 +54,12 @@ export default async function WorkoutDetailPage({
         </div>
         <DeleteWorkoutButton id={workout.id} name={workout.name} />
       </header>
+
+      {exercises.length > 0 && (
+        <section className="mt-6">
+          <StartTrainingButton workoutId={workout.id} />
+        </section>
+      )}
 
       <section className="mt-6 rounded-xl border border-neutral-800 bg-neutral-950 p-5">
         <AddExerciseForm workoutId={workout.id} exercises={library ?? []} />
