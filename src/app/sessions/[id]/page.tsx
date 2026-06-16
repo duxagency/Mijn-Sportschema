@@ -20,6 +20,13 @@ type WorkoutExerciseRow = Pick<
 
 const numToStr = (value: number | null) => (value == null ? "" : String(value));
 
+const toSetInput = (set: Tables<"session_sets">): SetInput => ({
+  reps: numToStr(set.reps),
+  weight: numToStr(set.weight),
+  minutes: numToStr(set.minutes),
+  distance: numToStr(set.distance),
+});
+
 export default async function SessionPage({
   params,
 }: {
@@ -122,19 +129,46 @@ export default async function SessionPage({
   // -------------------------------------------------------------------------
   // Lopende training: de invoerflow.
   // -------------------------------------------------------------------------
+
+  // Nog geen eigen sets in déze sessie? Haal dan de laatst afgeronde sessie
+  // van hetzelfde schema op, zodat we daarmee kunnen voorvullen.
+  const hasOwnSets = Object.keys(setsByExercise).length > 0;
+  const previousSetsByExercise: Record<string, Tables<"session_sets">[]> = {};
+
+  if (!hasOwnSets) {
+    const { data: previousSession } = await supabase
+      .from("sessions")
+      .select("id")
+      .eq("workout_id", session.workout_id)
+      .not("finished_at", "is", null)
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (previousSession) {
+      const { data: previousSets } = await supabase
+        .from("session_sets")
+        .select("*")
+        .eq("session_id", previousSession.id)
+        .order("set_number", { ascending: true });
+
+      for (const set of previousSets ?? []) {
+        (previousSetsByExercise[set.workout_exercise_id] ??= []).push(set);
+      }
+    }
+  }
+
   const flowExercises: FlowExercise[] = exercises.map((row) => {
     const existing = setsByExercise[row.id] ?? [];
+    const previous = previousSetsByExercise[row.id] ?? [];
     const initialSets: SetInput[] =
       existing.length > 0
-        ? existing.map((set) => ({
-            reps: numToStr(set.reps),
-            weight: numToStr(set.weight),
-            minutes: numToStr(set.minutes),
-            distance: numToStr(set.distance),
-          }))
-        : Array.from({ length: Math.max(1, row.target_sets ?? 1) }, () => ({
-            ...EMPTY_SET,
-          }));
+        ? existing.map(toSetInput)
+        : previous.length > 0
+          ? previous.map(toSetInput)
+          : Array.from({ length: Math.max(1, row.target_sets ?? 1) }, () => ({
+              ...EMPTY_SET,
+            }));
 
     return {
       workoutExerciseId: row.id,
