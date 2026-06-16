@@ -58,6 +58,17 @@ export default async function DashboardPage() {
             Bekijk, voeg toe en beheer de gedeelde oefeningen.
           </p>
         </Link>
+        <Link
+          href="/sessions"
+          className="block rounded-xl border border-neutral-800 bg-neutral-950 p-6 transition hover:border-neutral-600"
+        >
+          <h2 className="text-lg font-medium text-neutral-100">
+            Mijn trainingen →
+          </h2>
+          <p className="mt-2 text-sm text-neutral-400">
+            Bekijk je afgeronde trainingen en kijk ze terug.
+          </p>
+        </Link>
       </section>
     </main>
   );
