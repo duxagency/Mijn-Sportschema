@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/Button";
+import { FormError } from "@/components/ui/FormError";
 import { ExerciseListItem } from "@/components/exercises/ExerciseListItem";
 
 export default async function ExercisesPage() {
   const supabase = await createClient();
-  const { data: exercises } = await supabase
+  const { data: exercises, error } = await supabase
     .from("exercises")
     .select("*")
     .order("name", { ascending: true });
@@ -33,7 +34,11 @@ export default async function ExercisesPage() {
         </Link>
       </header>
 
-      {exercises && exercises.length > 0 ? (
+      {error ? (
+        <div className="mt-6">
+          <FormError message="Kon de oefeningen niet laden. Probeer de pagina te vernieuwen." />
+        </div>
+      ) : exercises && exercises.length > 0 ? (
         <ul className="mt-6 flex flex-col gap-3">
           {exercises.map((exercise) => (
             <ExerciseListItem key={exercise.id} exercise={exercise} />

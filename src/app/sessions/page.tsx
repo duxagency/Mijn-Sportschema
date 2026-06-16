@@ -2,10 +2,11 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatSessionDate } from "@/lib/format";
 import { SessionHistoryItem } from "@/components/sessions/SessionHistoryItem";
+import { FormError } from "@/components/ui/FormError";
 
 export default async function SessionsPage() {
   const supabase = await createClient();
-  const { data: sessions } = await supabase
+  const { data: sessions, error } = await supabase
     .from("sessions")
     .select("id, started_at, finished_at, workout:workouts(name)")
     .order("started_at", { ascending: false });
@@ -30,6 +31,12 @@ export default async function SessionsPage() {
           Je afgeronde trainingen, nieuwste eerst.
         </p>
       </header>
+
+      {error && (
+        <div className="mt-6">
+          <FormError message="Kon je trainingen niet laden. Probeer de pagina te vernieuwen." />
+        </div>
+      )}
 
       {inProgress.length > 0 && (
         <section className="mt-6">
@@ -74,9 +81,12 @@ export default async function SessionsPage() {
           ))}
         </ul>
       ) : (
-        <p className="mt-10 text-center text-sm text-neutral-400">
-          Je hebt nog geen trainingen afgerond. Start er een vanaf een schema.
-        </p>
+        !error && (
+          <p className="mt-10 text-center text-sm text-neutral-400">
+            Je hebt nog geen trainingen afgerond. Start er een vanaf een
+            schema.
+          </p>
+        )
       )}
     </main>
   );

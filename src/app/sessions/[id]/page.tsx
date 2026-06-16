@@ -12,6 +12,7 @@ import {
   type ReviewExercise,
 } from "@/components/sessions/SessionReview";
 import { DeleteSessionButton } from "@/components/sessions/DeleteSessionButton";
+import { FormError } from "@/components/ui/FormError";
 
 type WorkoutExerciseRow = Pick<
   Tables<"workout_exercises">,
@@ -45,8 +46,11 @@ export default async function SessionPage({
     notFound();
   }
 
-  const [{ data: workout }, { data: workoutExercises }, { data: sets }] =
-    await Promise.all([
+  const [
+    { data: workout },
+    { data: workoutExercises, error: exercisesError },
+    { data: sets },
+  ] = await Promise.all([
       supabase
         .from("workouts")
         .select("name")
@@ -118,10 +122,16 @@ export default async function SessionPage({
           />
         </header>
 
-        <SessionReview
-          exercises={reviewExercises}
-          setsByExercise={setsByExercise}
-        />
+        {exercisesError ? (
+          <div className="mt-6">
+            <FormError message="Kon deze training niet laden. Probeer de pagina te vernieuwen." />
+          </div>
+        ) : (
+          <SessionReview
+            exercises={reviewExercises}
+            setsByExercise={setsByExercise}
+          />
+        )}
       </main>
     );
   }
@@ -129,6 +139,27 @@ export default async function SessionPage({
   // -------------------------------------------------------------------------
   // Lopende training: de invoerflow.
   // -------------------------------------------------------------------------
+
+  if (exercisesError) {
+    return (
+      <main className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-10">
+        <header className="border-b border-neutral-800 pb-6">
+          <Link
+            href="/sessions"
+            className="text-sm text-neutral-400 underline-offset-4 hover:text-neutral-200 hover:underline"
+          >
+            ← Mijn trainingen
+          </Link>
+          <h1 className="mt-1 text-2xl font-semibold text-neutral-100">
+            {workoutName}
+          </h1>
+        </header>
+        <div className="mt-6">
+          <FormError message="Kon deze training niet laden. Probeer de pagina te vernieuwen." />
+        </div>
+      </main>
+    );
+  }
 
   // Nog geen eigen sets in déze sessie? Haal dan de laatst afgeronde sessie
   // van hetzelfde schema op, zodat we daarmee kunnen voorvullen.

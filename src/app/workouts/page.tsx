@@ -2,10 +2,11 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { CreateWorkoutForm } from "@/components/workouts/CreateWorkoutForm";
 import { WorkoutListItem } from "@/components/workouts/WorkoutListItem";
+import { FormError } from "@/components/ui/FormError";
 
 export default async function WorkoutsPage() {
   const supabase = await createClient();
-  const { data: workouts } = await supabase
+  const { data: workouts, error } = await supabase
     .from("workouts")
     .select("*, workout_exercises(count)")
     .order("created_at", { ascending: false });
@@ -34,7 +35,11 @@ export default async function WorkoutsPage() {
         <CreateWorkoutForm />
       </section>
 
-      {workouts && workouts.length > 0 ? (
+      {error ? (
+        <div className="mt-6">
+          <FormError message="Kon je schema's niet laden. Probeer de pagina te vernieuwen." />
+        </div>
+      ) : workouts && workouts.length > 0 ? (
         <ul className="mt-6 flex flex-col gap-3">
           {workouts.map((workout) => (
             <WorkoutListItem

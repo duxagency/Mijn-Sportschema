@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/auth/SignOutButton";
+import { FormError } from "@/components/ui/FormError";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -15,7 +16,7 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("display_name")
     .eq("id", user.id)
@@ -34,6 +35,12 @@ export default async function DashboardPage() {
         </div>
         <SignOutButton />
       </header>
+
+      {profileError && (
+        <div className="mt-4">
+          <FormError message="Kon je profiel niet laden. Probeer de pagina te vernieuwen." />
+        </div>
+      )}
 
       <section className="mt-8 grid gap-4 sm:grid-cols-2">
         <Link

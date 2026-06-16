@@ -6,6 +6,7 @@ import { DeleteWorkoutButton } from "@/components/workouts/DeleteWorkoutButton";
 import { StartTrainingButton } from "@/components/sessions/StartTrainingButton";
 import { SortableExerciseList } from "@/components/workouts/SortableExerciseList";
 import type { WorkoutExerciseWithExercise } from "@/components/workouts/WorkoutExerciseCard";
+import { FormError } from "@/components/ui/FormError";
 
 export default async function WorkoutDetailPage({
   params,
@@ -25,7 +26,10 @@ export default async function WorkoutDetailPage({
     notFound();
   }
 
-  const [{ data: workoutExercises }, { data: library }] = await Promise.all([
+  const [
+    { data: workoutExercises, error: exercisesError },
+    { data: library },
+  ] = await Promise.all([
     supabase
       .from("workout_exercises")
       .select(
@@ -65,7 +69,11 @@ export default async function WorkoutDetailPage({
         <AddExerciseForm workoutId={workout.id} exercises={library ?? []} />
       </section>
 
-      {exercises.length > 0 ? (
+      {exercisesError ? (
+        <div className="mt-6">
+          <FormError message="Kon de oefeningen van dit schema niet laden. Probeer de pagina te vernieuwen." />
+        </div>
+      ) : exercises.length > 0 ? (
         <SortableExerciseList exercises={exercises} workoutId={workout.id} />
       ) : (
         <p className="mt-10 text-center text-sm text-neutral-400">
