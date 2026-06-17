@@ -1,17 +1,12 @@
 # Mijn Sportschema
 
 Web-app voor krachttraining. Gebruikers loggen in, bouwen trainingsschema's uit
-een gedeelde oefeningenbibliotheek en leggen hun prestaties per set vast.
-
-Dit is **fase 1: de fundering**. In deze fase werken alleen het opzetten van het
-project, het volledige datamodel met RLS, en authenticatie (registreren,
-inloggen, beveiligd dashboard, uitloggen). De schema-builder, training-flow en
-progressie-logica volgen in latere fasen — die tabellen staan al wél in de
-database.
+een gedeelde oefeningenbibliotheek en leggen hun prestaties per set vast. Na
+elke training worden de vorige waarden automatisch als uitgangspunt ingeladen.
 
 ## Stack
 
-- [Next.js](https://nextjs.org/) (App Router) met TypeScript (strict)
+- [Next.js](https://nextjs.org/) 16 (App Router) met TypeScript (strict)
 - [Supabase](https://supabase.com/) voor Postgres, auth en row level security
 - [Tailwind CSS](https://tailwindcss.com/) v4
 - [`@supabase/ssr`](https://supabase.com/docs/guides/auth/server-side/nextjs)
@@ -20,9 +15,7 @@ database.
 ## Vereisten
 
 - Node.js 20+ (ontwikkeld op Node 24)
-- Een gratis [Supabase](https://supabase.com/)-account
-- Optioneel: de [Supabase CLI](https://supabase.com/docs/guides/cli) om
-  migrations en types vanaf de command line te beheren
+- Een [Supabase](https://supabase.com/)-account (gratis tier is voldoende)
 
 ## 1. Project installeren
 
@@ -39,18 +32,12 @@ npm install
 
 ## 3. Environment variables
 
-Kopieer het voorbeeldbestand en vul je eigen waarden in:
-
-```bash
-cp .env.local.example .env.local
-```
+Maak een `.env.local` aan in de projectroot (staat in `.gitignore`, wordt niet meegecommit):
 
 ```dotenv
 NEXT_PUBLIC_SUPABASE_URL=https://jouw-project-ref.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=jouw-anon-public-key
 ```
-
-`.env.local` staat in `.gitignore` en wordt dus niet meegecommit.
 
 ## 4. Database opzetten (migrations + RLS)
 
@@ -61,20 +48,13 @@ manieren toepassen.
 ### Optie A — via de Supabase CLI (aanbevolen)
 
 ```bash
-# eenmalig: maak de Supabase-config aan (laat de bestaande migrations staan)
-npx supabase init
-
-# koppel je lokale repo aan je Supabase-project
+# koppel je lokale repo aan je Supabase-project (eenmalig)
 npx supabase login
 npx supabase link --project-ref jouw-project-ref
 
 # pas alle migrations toe op de gekoppelde database
 npx supabase db push
 ```
-
-Werk je lokaal met `npx supabase start`, dan zet `npx supabase db reset` de
-database op en draait het automatisch ook `supabase/seed.sql` met een paar
-voorbeeldoefeningen.
 
 ### Optie B — handmatig via de SQL Editor
 
@@ -84,83 +64,111 @@ bestanden uit, in volgorde:
 1. `supabase/migrations/20260615120000_create_tables.sql`
 2. `supabase/migrations/20260615120100_enable_rls.sql`
 3. `supabase/migrations/20260615120200_profile_trigger.sql`
-4. *(optioneel)* `supabase/seed.sql` voor wat startoefeningen
+4. *(optioneel)* `supabase/seed.sql` voor startoefeningen
 
-## 5. E-mailbevestiging (belangrijk voor lokaal testen)
+## 5. E-mailbevestiging
 
-Supabase heeft standaard **Confirm email** aanstaan. Dan kun je pas inloggen
-nadat je de bevestigingsmail hebt geopend. Voor snel lokaal testen kun je dit
-uitzetten:
+Supabase heeft standaard **Confirm email** aanstaan. Voor lokaal testen kun je
+dit uitzetten via:
 
 > **Authentication → Sign In / Providers → Email → Confirm email** uitzetten.
 
-Met bevestiging uit kun je direct na registreren inloggen. Staat het aan, dan
-stuurt de app je na registratie naar de loginpagina met de melding om je e-mail
-te bevestigen.
-
-## 6. App draaien
+## 6. App draaien (lokaal)
 
 ```bash
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000). Niet-ingelogde bezoekers
-worden naar `/login` gestuurd. Maak een account aan via `/register`, log in en
-je ziet je dashboard met je naam. Uitloggen kan met de knop op het dashboard.
+worden naar `/login` gestuurd.
 
-## TypeScript-types genereren
+## 7. Deployen naar Vercel
 
-[`src/types/database.types.ts`](src/types/database.types.ts) weerspiegelt het
-schema en is met de hand geschreven in het formaat dat de Supabase CLI
-genereert. Zodra je project gekoppeld is, kun je dit bestand opnieuw genereren
-vanuit de echte database:
+### Eerste keer
+
+1. Push de repo naar GitHub.
+2. Ga naar [vercel.com/new](https://vercel.com/new) en importeer de repository.
+3. Vercel detecteert Next.js automatisch — geen extra build-instellingen nodig.
+4. Voeg de volgende **Environment Variables** toe in het Vercel-dashboard
+   (Settings → Environment Variables), voor de omgevingen Production, Preview
+   en Development:
+
+   | Variabele | Waarde |
+   |---|---|
+   | `NEXT_PUBLIC_SUPABASE_URL` | URL van je productie-Supabase-project |
+   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | anon public key van datzelfde project |
+
+5. Klik **Deploy**. Vercel bouwt en deploy automatisch.
+
+### Vervolgens
+
+Elke push naar `main` triggert automatisch een nieuwe deploy. Nieuwe migrations
+pas je toe via `npx supabase db push` (na `npx supabase link`) of handmatig via
+de Supabase SQL Editor.
+
+## Nuttige commando's
 
 ```bash
-npm run gen:types
+npm run dev          # dev-server op http://localhost:3000
+npx tsc --noEmit     # typecheck
+npx eslint .         # lint
+npx next build       # productie-build lokaal testen
+npm run gen:types    # database-types regenereren (na een nieuwe migration)
 ```
 
-Doe dit telkens nadat je een nieuwe migration hebt toegepast.
+> **Let op (OneDrive):** de repo staat in een OneDrive-gesyncte map. Turbopack's
+> file-watcher pakt edits daar niet altijd betrouwbaar op. Na wijzigingen:
+> dev-server herstarten, bij twijfel eerst `rm -rf .next`.
 
 ## Projectstructuur
 
 ```
-.
-├── middleware.ts                 # ververst de sessie + beschermt routes
-├── supabase/
-│   ├── migrations/               # volledig datamodel, RLS, profiel-trigger
-│   └── seed.sql                  # optionele startoefeningen
-└── src/
-    ├── app/
-    │   ├── layout.tsx            # root layout
-    │   ├── page.tsx              # redirect naar /dashboard
-    │   ├── login/page.tsx        # inloggen
-    │   ├── register/page.tsx     # registreren
-    │   └── dashboard/page.tsx    # beveiligd, toont display_name
-    ├── components/
-    │   ├── auth/                 # AuthCard, Login/RegisterForm, SignOutButton
-    │   └── ui/                   # kleine herbruikbare primitives
-    ├── lib/
-    │   ├── actions/auth.ts       # server actions: login, register, signOut
-    │   └── supabase/             # browser-, server- en middleware-client
-    └── types/database.types.ts   # gegenereerde schema-types
+middleware.ts                      # ververst sessie + beschermt routes
+supabase/
+  migrations/                      # datamodel, RLS, profiel-trigger
+  seed.sql                         # optionele startoefeningen
+src/
+  app/
+    layout.tsx                     # root layout
+    page.tsx                       # redirect naar /dashboard
+    error.tsx                      # globale fout-boundary
+    login/                         # inloggen
+    register/                      # registreren
+    dashboard/                     # startpagina na inloggen
+    exercises/                     # oefeningenbibliotheek (gedeeld)
+    workouts/                      # schema's per gebruiker
+    sessions/                      # trainingen per gebruiker
+  components/
+    auth/                          # AuthCard, Login/RegisterForm, SignOutButton
+    exercises/                     # ExerciseForm, DeleteExerciseButton
+    sessions/                      # TrainingFlow, SessionReview, history
+    workouts/                      # WorkoutForm, SortableExerciseList, e.a.
+    ui/                            # herbruikbare primitives (Button, Input, …)
+  lib/
+    actions/                       # server actions per feature
+    supabase/                      # browser-, server- en middleware-client
+    measurements.ts                # definitie van meetvelden (reps/gewicht/…)
+    format.ts                      # datum- en duurformattering
+    targets.ts                     # type-hulp voor doelwaarden
+  types/database.types.ts          # schema-types (regenereer met gen:types)
 ```
 
 ## Datamodel
 
 | Tabel | Beschrijving | Eigenaarschap |
-| --- | --- | --- |
+|---|---|---|
 | `profiles` | 1-op-1 met `auth.users`, bevat `display_name` | eigen rij |
 | `exercises` | gedeelde oefeningenbibliotheek met `tracks_*`-booleans | gedeeld |
 | `workouts` | een trainingsschema | per gebruiker |
-| `workout_exercises` | oefening binnen een schema (`position`, `target_*`) | via `workouts` |
+| `workout_exercises` | oefening in een schema (`position`, `target_*`) | via `workouts` |
 | `sessions` | een uitgevoerde training | per gebruiker |
 | `session_sets` | één ingevoerde set tijdens een sessie | via `sessions` |
 
 ## Row level security
 
 - **profiles** — een gebruiker leest en bewerkt alleen zijn eigen profiel. De
-  rij wordt automatisch aangemaakt door een `security definer`-trigger
-  (`handle_new_user`) bij registratie.
+  rij wordt automatisch aangemaakt door een `security definer`-trigger bij
+  registratie.
 - **exercises** — volledig gedeeld: elke ingelogde gebruiker mag lezen,
   aanmaken, wijzigen en verwijderen.
 - **workouts, sessions** — een gebruiker ziet en bewerkt alleen rijen waar
