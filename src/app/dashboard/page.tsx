@@ -20,7 +20,7 @@ export default async function DashboardPage() {
     .from("profiles")
     .select("display_name")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
 
   const displayName = profile?.display_name ?? user.email ?? "sporter";
 
