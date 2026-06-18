@@ -37,7 +37,7 @@ export default async function WorkoutDetailPage({
       )
       .eq("workout_id", id)
       .order("position", { ascending: true }),
-    supabase.from("exercises").select("id, name").order("name"),
+    supabase.from("exercises").select("id, name, category").order("name"),
   ]);
 
   const exercises = (workoutExercises ?? []) as WorkoutExerciseWithExercise[];
