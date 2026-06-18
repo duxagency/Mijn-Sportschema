@@ -23,7 +23,12 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .maybeSingle();
 
-  const displayName = profile?.display_name ?? user.email ?? "sporter";
+  const metadataName = user.user_metadata?.display_name as string | undefined;
+  const displayName =
+    profile?.display_name ??
+    metadataName ??
+    user.email?.split("@")[0] ??
+    "sporter";
 
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-10">
@@ -43,43 +48,94 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-2">
-        <Link
+      <section className="mt-8 flex flex-col gap-4">
+        <DashboardCard
           href="/workouts"
-          className="block rounded-xl border border-neutral-800 bg-neutral-950 p-6 transition hover:border-neutral-600"
-        >
-          <h2 className="text-lg font-medium text-neutral-100">
-            Mijn schema&apos;s →
-          </h2>
-          <p className="mt-2 text-sm text-neutral-400">
-            Bouw en beheer je eigen trainingsschema&apos;s.
-          </p>
-        </Link>
-        <Link
+          title="Mijn schema's"
+          description="Bouw en beheer je eigen trainingsschema's."
+          icon={
+            <>
+              <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+              <path d="M12 11h4" />
+              <path d="M12 16h4" />
+              <path d="M8 11h.01" />
+              <path d="M8 16h.01" />
+            </>
+          }
+        />
+        <DashboardCard
           href="/exercises"
-          className="block rounded-xl border border-neutral-800 bg-neutral-950 p-6 transition hover:border-neutral-600"
-        >
-          <h2 className="text-lg font-medium text-neutral-100">
-            Oefeningenbibliotheek →
-          </h2>
-          <p className="mt-2 text-sm text-neutral-400">
-            Bekijk, voeg toe en beheer de gedeelde oefeningen.
-          </p>
-        </Link>
-        <Link
+          title="Oefeningenbibliotheek"
+          description="Bekijk, voeg toe en beheer de gedeelde oefeningen."
+          icon={
+            <>
+              <path d="m6.5 6.5 11 11" />
+              <path d="m21 21-1-1" />
+              <path d="m3 3 1 1" />
+              <path d="m18 22 4-4" />
+              <path d="m2 6 4-4" />
+              <path d="m3 10 7-7" />
+              <path d="m14 21 7-7" />
+            </>
+          }
+        />
+        <DashboardCard
           href="/sessions"
-          className="block rounded-xl border border-neutral-800 bg-neutral-950 p-6 transition hover:border-neutral-600"
-        >
-          <h2 className="text-lg font-medium text-neutral-100">
-            Mijn trainingen →
-          </h2>
-          <p className="mt-2 text-sm text-neutral-400">
-            Bekijk je afgeronde trainingen en kijk ze terug.
-          </p>
-        </Link>
+          title="Mijn trainingen"
+          description="Bekijk je afgeronde trainingen en kijk ze terug."
+          icon={
+            <>
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+              <path d="M12 7v5l4 2" />
+            </>
+          }
+        />
       </section>
 
       <AppVersion />
     </main>
+  );
+}
+
+function DashboardCard({
+  href,
+  title,
+  description,
+  icon,
+}: {
+  href: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-4 rounded-xl border border-neutral-800 bg-neutral-950 p-5 transition hover:border-neutral-600"
+    >
+      <span className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-neutral-800 bg-neutral-900 text-neutral-300">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="size-5"
+          aria-hidden="true"
+        >
+          {icon}
+        </svg>
+      </span>
+      <div className="min-w-0 flex-1">
+        <h2 className="text-lg font-medium text-neutral-100">{title}</h2>
+        <p className="mt-1 text-sm text-neutral-400">{description}</p>
+      </div>
+      <span aria-hidden="true" className="shrink-0 text-neutral-500">
+        →
+      </span>
+    </Link>
   );
 }
