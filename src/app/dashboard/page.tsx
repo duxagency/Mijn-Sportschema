@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { FormError } from "@/components/ui/FormError";
 import { AppVersion } from "@/components/ui/AppVersion";
+import { QuickStartButton } from "@/components/sessions/QuickStartButton";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -29,6 +30,42 @@ export default async function DashboardPage() {
     metadataName ??
     user.email?.split("@")[0] ??
     "sporter";
+
+  // Schema's voor de "snel starten"-sectie: maximaal 5, gesorteerd op de meest
+  // recente training. Zonder enige training tonen we de eerst gemaakte schema's.
+  const [{ data: workoutsData }, { data: sessionsData }] = await Promise.all([
+    supabase
+      .from("workouts")
+      .select("id, name, created_at")
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("sessions")
+      .select("workout_id, started_at")
+      .order("started_at", { ascending: false }),
+  ]);
+
+  const workouts = workoutsData ?? [];
+  const sessions = sessionsData ?? [];
+
+  // Eerste keer dat een workout_id voorkomt = de meest recente sessie (desc).
+  const lastTrained = new Map<string, string>();
+  for (const s of sessions) {
+    if (!lastTrained.has(s.workout_id)) lastTrained.set(s.workout_id, s.started_at);
+  }
+
+  const quickStart =
+    sessions.length > 0
+      ? [...workouts]
+          .sort((a, b) => {
+            const la = lastTrained.get(a.id);
+            const lb = lastTrained.get(b.id);
+            if (la && lb) return lb.localeCompare(la); // recentst eerst
+            if (la) return -1;
+            if (lb) return 1;
+            return a.created_at.localeCompare(b.created_at);
+          })
+          .slice(0, 5)
+      : workouts.slice(0, 5);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-10">
@@ -93,6 +130,30 @@ export default async function DashboardPage() {
           }
         />
       </section>
+
+      {quickStart.length > 0 && (
+        <section className="mt-10">
+          <h2 className="mb-3 text-sm font-medium text-neutral-300">
+            Snel starten
+          </h2>
+          <ul className="flex flex-col gap-2">
+            {quickStart.map((workout) => (
+              <li
+                key={workout.id}
+                className="flex items-center justify-between gap-3 rounded-lg border border-neutral-800 bg-neutral-950 px-4 py-3"
+              >
+                <Link
+                  href={`/workouts/${workout.id}`}
+                  className="min-w-0 flex-1 truncate font-medium text-neutral-100 underline-offset-4 hover:underline"
+                >
+                  {workout.name}
+                </Link>
+                <QuickStartButton workoutId={workout.id} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <AppVersion />
     </main>
