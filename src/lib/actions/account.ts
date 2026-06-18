@@ -24,8 +24,7 @@ export async function updateDisplayName(
 
   const { error } = await supabase
     .from("profiles")
-    .update({ display_name: name })
-    .eq("id", user.id);
+    .upsert({ id: user.id, display_name: name });
 
   if (error) {
     return { error: "Opslaan mislukt. Probeer het opnieuw.", success: null };
