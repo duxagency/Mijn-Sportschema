@@ -32,20 +32,20 @@ body::before {
     radial-gradient(65% 75% at 58% 55%, rgba(30, 40, 78, 0.45), transparent 85%),
     var(--background);
   background-color: var(--background);
-  filter: blur(70px);
+  filter: blur(40px);
   will-change: transform;
-  animation: bg-drift 32s ease-in-out infinite alternate;
+  animation: bg-drift 22s ease-in-out infinite alternate;
 }
 
 @keyframes bg-drift {
   0% {
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(-5%, -4%, 0) scale(1.05) rotate(-2deg);
   }
   50% {
-    transform: translate3d(-3%, 2.5%, 0) scale(1.08);
+    transform: translate3d(6%, 5%, 0) scale(1.16) rotate(2deg);
   }
   100% {
-    transform: translate3d(2.5%, -2%, 0) scale(1.05);
+    transform: translate3d(-3%, 4%, 0) scale(1.1) rotate(-1deg);
   }
 }
 
