@@ -5,6 +5,11 @@ import { AmbientBackground } from "@/components/ui/AmbientBackground";
 export const metadata: Metadata = {
   title: "Mijn Sportschema",
   description: "Bouw trainingsschema's en log je krachttraining.",
+  appleWebApp: {
+    capable: true,
+    title: "Sportschema",
+    statusBarStyle: "black-translucent",
+  },
 };
 
 export const viewport: Viewport = {
@@ -12,6 +17,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: "#0a0a0a",
 };
 
 export default function RootLayout({
