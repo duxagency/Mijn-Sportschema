@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/Button";
 import { FormError } from "@/components/ui/FormError";
-import { ExerciseListItem } from "@/components/exercises/ExerciseListItem";
+import { ExerciseLibrary } from "@/components/exercises/ExerciseLibrary";
 
 export default async function ExercisesPage() {
   const supabase = await createClient();
@@ -39,11 +39,7 @@ export default async function ExercisesPage() {
           <FormError message="Kon de oefeningen niet laden. Probeer de pagina te vernieuwen." />
         </div>
       ) : exercises && exercises.length > 0 ? (
-        <ul className="mt-6 flex flex-col gap-3">
-          {exercises.map((exercise) => (
-            <ExerciseListItem key={exercise.id} exercise={exercise} />
-          ))}
-        </ul>
+        <ExerciseLibrary exercises={exercises} />
       ) : (
         <p className="mt-10 text-center text-sm text-neutral-400">
           Nog geen oefeningen. Maak de eerste aan met{" "}

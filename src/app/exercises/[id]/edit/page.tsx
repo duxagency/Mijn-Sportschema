@@ -41,7 +41,11 @@ export default async function EditExercisePage({
       <ExerciseForm
         action={updateExercise.bind(null, exercise.id)}
         submitLabel="Opslaan"
-        defaultValues={{ name: exercise.name, metrics }}
+        defaultValues={{
+          name: exercise.name,
+          category: exercise.category,
+          metrics,
+        }}
       />
     </main>
   );

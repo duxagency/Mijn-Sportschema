@@ -2,41 +2,40 @@
 -- created_by blijft null: dit zijn systeemoefeningen zonder eigenaar.
 -- Wordt automatisch toegepast door `supabase db reset` (lokaal).
 
-insert into public.exercises (name, tracks_weight, tracks_reps, tracks_time, tracks_distance)
+insert into public.exercises (name, category, tracks_weight, tracks_reps, tracks_time, tracks_distance)
 values
   -- Algemeen / cardio
-  ('Squat',            true,  true,  false, false),
-  ('Deadlift',         true,  true,  false, false),
-  ('Bench press',      true,  true,  false, false),
-  ('Overhead press',   true,  true,  false, false),
-  ('Pull-up',          false, true,  false, false),
-  ('Plank',            false, false, true,  false),
-  ('Hardlopen',        false, false, true,  true),
-  ('Roeien',           false, false, true,  true),
+  ('Squat',            'kracht', true,  true,  false, false),
+  ('Deadlift',         'kracht', true,  true,  false, false),
+  ('Plank',            'overig', false, false, true,  false),
+  ('Hardlopen',        'cardio', false, false, true,  true),
+  ('Roeien',           'cardio', false, false, true,  true),
 
   -- Krachttraining met gewichten (gewicht + reps)
-  ('Back squat',       true,  true,  false, false),
-  ('Lat pulldown',     true,  true,  false, false),
-  ('Tricep extensions',true,  true,  false, false),
-  ('Bicep curl',       true,  true,  false, false),
+  ('Back squat',       'kracht', true,  true,  false, false),
+  ('Bench press',      'kracht', true,  true,  false, false),
+  ('Overhead press',   'kracht', true,  true,  false, false),
+  ('Lat pulldown',     'kracht', true,  true,  false, false),
+  ('Tricep extensions','kracht', true,  true,  false, false),
+  ('Bicep curl',       'kracht', true,  true,  false, false),
 
   -- Calisthenics duwen (reps; gewicht optioneel bij dips)
-  ('Push-ups',         false, true,  false, false),
-  ('Dips',             true,  true,  false, false),
-  ('Pike push-ups',    false, true,  false, false),
-  ('Handstand push-ups', false, true, false, false),
-  ('Diamond push-ups', false, true,  false, false),
+  ('Push-ups',         'push',   false, true,  false, false),
+  ('Dips',             'push',   true,  true,  false, false),
+  ('Pike push-ups',    'push',   false, true,  false, false),
+  ('Handstand push-ups', 'push', false, true,  false, false),
+  ('Diamond push-ups', 'push',   false, true,  false, false),
 
   -- Calisthenics trekken (reps; gewicht optioneel bij pull-ups)
-  ('Pull-ups',         true,  true,  false, false),
-  ('Chin-ups',         false, true,  false, false),
-  ('Inverted rows (Australian pull-ups)', false, true, false, false),
-  ('Muscle-ups',       false, true,  false, false),
+  ('Pull-ups',         'pull',   true,  true,  false, false),
+  ('Chin-ups',         'pull',   false, true,  false, false),
+  ('Inverted rows (Australian pull-ups)', 'pull', false, true, false, false),
+  ('Muscle-ups',       'pull',   false, true,  false, false),
 
   -- Calisthenics benen (reps)
-  ('Bodyweight squats',     false, true, false, false),
-  ('Pistol squats',         false, true, false, false),
-  ('Bulgarian split squats',false, true, false, false),
-  ('Walking lunges',        false, true, false, false),
-  ('Calf raises',           false, true, false, false)
+  ('Bodyweight squats',     'benen', false, true, false, false),
+  ('Pistol squats',         'benen', false, true, false, false),
+  ('Bulgarian split squats','benen', false, true, false, false),
+  ('Walking lunges',        'benen', false, true, false, false),
+  ('Calf raises',           'benen', false, true, false, false)
 on conflict do nothing;

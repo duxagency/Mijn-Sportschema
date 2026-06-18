@@ -2,11 +2,13 @@
 
 import { useActionState } from "react";
 import { METRICS, type MetricKey } from "@/lib/metrics";
+import { CATEGORIES, DEFAULT_CATEGORY } from "@/lib/categories";
 import {
   initialExerciseFormState,
   type ExerciseFormState,
 } from "@/lib/actions/exercise-types";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { FormError } from "@/components/ui/FormError";
 import { SubmitButton } from "@/components/ui/SubmitButton";
@@ -19,6 +21,7 @@ type ExerciseFormProps = {
   submitLabel: string;
   defaultValues?: {
     name: string;
+    category: string;
     metrics: Record<MetricKey, boolean>;
   };
 };
@@ -40,6 +43,18 @@ export function ExerciseForm({
         defaultValue={defaultValues?.name}
         placeholder="Bijv. Bench press"
       />
+
+      <Select
+        label="Categorie"
+        name="category"
+        defaultValue={defaultValues?.category ?? DEFAULT_CATEGORY}
+      >
+        {CATEGORIES.map((category) => (
+          <option key={category.key} value={category.key}>
+            {category.label}
+          </option>
+        ))}
+      </Select>
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-medium text-neutral-300">

@@ -45,6 +45,7 @@ export type Database = {
           tracks_reps: boolean;
           tracks_time: boolean;
           tracks_distance: boolean;
+          category: string;
           created_at: string;
         };
         Insert: {
@@ -55,6 +56,7 @@ export type Database = {
           tracks_reps?: boolean;
           tracks_time?: boolean;
           tracks_distance?: boolean;
+          category?: string;
           created_at?: string;
         };
         Update: {
@@ -65,6 +67,7 @@ export type Database = {
           tracks_reps?: boolean;
           tracks_time?: boolean;
           tracks_distance?: boolean;
+          category?: string;
           created_at?: string;
         };
         Relationships: [];
