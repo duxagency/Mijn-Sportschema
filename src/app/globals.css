@@ -23,15 +23,16 @@ body {
 body::before {
   content: "";
   position: fixed;
-  inset: -25%;
+  inset: -45%;
   z-index: -2;
   background:
-    radial-gradient(38% 48% at 18% 22%, rgba(40, 46, 84, 0.55), transparent 60%),
-    radial-gradient(42% 52% at 82% 28%, rgba(18, 56, 66, 0.5), transparent 62%),
-    radial-gradient(48% 58% at 50% 88%, rgba(58, 28, 62, 0.45), transparent 65%),
+    radial-gradient(70% 80% at 22% 28%, rgba(40, 46, 84, 0.6), transparent 85%),
+    radial-gradient(75% 85% at 78% 32%, rgba(18, 56, 66, 0.55), transparent 85%),
+    radial-gradient(80% 88% at 45% 82%, rgba(58, 28, 62, 0.5), transparent 88%),
+    radial-gradient(65% 75% at 58% 55%, rgba(30, 40, 78, 0.45), transparent 85%),
     var(--background);
   background-color: var(--background);
-  filter: blur(24px);
+  filter: blur(70px);
   will-change: transform;
   animation: bg-drift 32s ease-in-out infinite alternate;
 }
