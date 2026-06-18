@@ -14,6 +14,7 @@ import { finishSession, saveExerciseSets } from "@/lib/actions/sessions";
 import { FormError } from "@/components/ui/FormError";
 import { ExerciseStep } from "./ExerciseStep";
 import { DeleteSessionButton } from "./DeleteSessionButton";
+import { RestTimer } from "./RestTimer";
 
 export type FlowExercise = {
   workoutExerciseId: string;
@@ -146,7 +147,7 @@ export function TrainingFlow({
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-8 pb-28">
+    <main className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-8 pb-40">
       <header className="flex items-start justify-between gap-4 border-b border-neutral-800 pb-4">
         <div>
           <p className="text-sm text-neutral-400">Training bezig</p>
@@ -189,6 +190,9 @@ export function TrainingFlow({
       </div>
 
       <footer className="fixed inset-x-0 bottom-0 border-t border-neutral-800 bg-neutral-950/95 px-4 py-3 backdrop-blur">
+        <div className="mx-auto mb-2 flex max-w-2xl items-center justify-center overflow-x-auto">
+          <RestTimer />
+        </div>
         <div className="mx-auto flex max-w-2xl items-center gap-3">
           <button
             type="button"
