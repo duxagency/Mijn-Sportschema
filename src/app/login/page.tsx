@@ -1,5 +1,6 @@
 import { AuthCard } from "@/components/auth/AuthCard";
 import { LoginForm } from "@/components/auth/LoginForm";
+import { AppVersion } from "@/components/ui/AppVersion";
 
 export default async function LoginPage({
   searchParams,
@@ -25,6 +26,7 @@ export default async function LoginPage({
         </p>
       )}
       <LoginForm />
+      <AppVersion />
     </AuthCard>
   );
 }
