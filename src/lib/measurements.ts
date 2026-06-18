@@ -66,6 +66,24 @@ export function visibleMeasurements(
   return MEASUREMENTS.filter((measurement) => exercise[measurement.requires]);
 }
 
+// Volgorde waarin we de "belangrijkste" meetwaarde kiezen voor een grafiek:
+// gewicht zegt het meest over kracht, daarna reps, tijd, afstand.
+const CHART_PRIORITY: readonly MeasurementKey[] = [
+  "weight",
+  "reps",
+  "minutes",
+  "distance",
+] as const;
+
+/** De meetwaarde die we standaard in de progressie-grafiek tonen, of null. */
+export function primaryMeasurement(exercise: Pick<Tables<"exercises">, MetricKey>) {
+  for (const key of CHART_PRIORITY) {
+    const measurement = MEASUREMENTS.find((m) => m.key === key);
+    if (measurement && exercise[measurement.requires]) return measurement;
+  }
+  return null;
+}
+
 /**
  * Formatteert de ingevoerde waarden van één set, bv. "10 reps · 20 kg".
  * Alleen de metrics die de oefening bijhoudt en een waarde hebben.

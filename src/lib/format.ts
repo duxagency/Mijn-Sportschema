@@ -10,6 +10,14 @@ export function formatSessionDate(iso: string): string {
   });
 }
 
+/** Korte datum, bv. "12 jun". */
+export function formatShortDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("nl-NL", {
+    day: "numeric",
+    month: "short",
+  });
+}
+
 /** Duur tussen start en eind, bv. "45 min" of "1 u 5 min". */
 export function formatDuration(startIso: string, endIso: string): string {
   const ms = new Date(endIso).getTime() - new Date(startIso).getTime();

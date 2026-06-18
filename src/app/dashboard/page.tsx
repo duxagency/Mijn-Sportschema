@@ -137,6 +137,17 @@ export default async function DashboardPage() {
             </>
           }
         />
+        <DashboardCard
+          href="/progress"
+          title="Voortgang"
+          description="Zie per oefening je vooruitgang over tijd."
+          icon={
+            <>
+              <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+              <path d="m19 9-5 5-4-4-3 3" />
+            </>
+          }
+        />
       </section>
 
       {quickStart.length > 0 && (
