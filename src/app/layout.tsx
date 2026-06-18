@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { AmbientBackground } from "@/components/ui/AmbientBackground";
 
 export const metadata: Metadata = {
   title: "Mijn Sportschema",
@@ -20,7 +21,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="nl">
-      <body className="min-h-screen antialiased">{children}</body>
+      <body className="min-h-screen antialiased">
+        <AmbientBackground />
+        {children}
+      </body>
     </html>
   );
 }
