@@ -12,7 +12,56 @@
 }
 
 body {
-  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  background-color: var(--background);
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Donkere, langzaam driftende gradient-laag achter alle content. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -25%;
+  z-index: -2;
+  background:
+    radial-gradient(38% 48% at 18% 22%, rgba(40, 46, 84, 0.55), transparent 60%),
+    radial-gradient(42% 52% at 82% 28%, rgba(18, 56, 66, 0.5), transparent 62%),
+    radial-gradient(48% 58% at 50% 88%, rgba(58, 28, 62, 0.45), transparent 65%),
+    var(--background);
+  background-color: var(--background);
+  filter: blur(24px);
+  will-change: transform;
+  animation: bg-drift 32s ease-in-out infinite alternate;
+}
+
+@keyframes bg-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-3%, 2.5%, 0) scale(1.08);
+  }
+  100% {
+    transform: translate3d(2.5%, -2%, 0) scale(1.05);
+  }
+}
+
+/* Fijne ruis/grain-laag eroverheen. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    animation: none;
+  }
 }
