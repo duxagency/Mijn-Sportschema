@@ -76,7 +76,15 @@ export default async function DashboardPage() {
             Hoi, {displayName} 👋
           </h1>
         </div>
-        <SignOutButton />
+        <div className="flex shrink-0 items-center gap-3">
+          <Link
+            href="/account"
+            className="text-sm text-neutral-400 underline-offset-4 hover:text-neutral-200 hover:underline"
+          >
+            Account
+          </Link>
+          <SignOutButton />
+        </div>
       </header>
 
       {profileError && (
