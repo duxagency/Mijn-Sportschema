@@ -8,14 +8,17 @@ export default function DashboardLoading() {
           <Skeleton className="h-4 w-20" />
           <Skeleton className="h-7 w-48" />
         </div>
-        <Skeleton className="h-9 w-24" />
+        <Skeleton className="size-10 rounded-lg" />
       </header>
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-2">
+      <Skeleton className="mt-6 h-56 rounded-xl" />
+
+      <div className="mt-8 flex flex-col gap-2">
+        <Skeleton className="h-4 w-24" />
         {Array.from({ length: 3 }, (_, i) => (
-          <Skeleton key={i} className="h-28 rounded-xl" />
+          <Skeleton key={i} className="h-14 rounded-lg" />
         ))}
-      </section>
+      </div>
     </main>
   );
 }
