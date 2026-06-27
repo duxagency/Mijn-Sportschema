@@ -149,6 +149,29 @@ export async function reorderWorkoutExercises(
 }
 
 /**
+ * Combineert een oefening met de oefening erboven tot een superset (of maakt
+ * de combinatie ongedaan). De vlag staat op de workout_exercise.
+ */
+export async function setExerciseCombined(
+  workoutExerciseId: string,
+  workoutId: string,
+  combined: boolean,
+): Promise<WorkoutFormState> {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("workout_exercises")
+    .update({ combined_with_previous: combined })
+    .eq("id", workoutExerciseId);
+
+  if (error) {
+    return { error: "Combineren mislukt. Probeer het opnieuw." };
+  }
+
+  revalidatePath(`/workouts/${workoutId}`);
+  return { error: null };
+}
+
+/**
  * Slaat de notitie bij een oefening-in-een-schema op. De notitie hangt aan de
  * workout_exercise, dus blijft bij dat schema en komt terug bij elke training.
  */

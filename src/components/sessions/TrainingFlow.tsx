@@ -23,12 +23,26 @@ export type FlowExercise = {
   exercise: Tables<"exercises">;
   targets: Record<TargetKey, number | null>;
   note: string | null;
+  combinedWithPrevious: boolean;
   initialSets: SetInput[];
 };
 
 /** Heeft minstens één veld van één set een waarde? */
 function hasData(rows: SetInput[]): boolean {
   return rows.some((row) => Object.values(row).some((v) => v.trim() !== ""));
+}
+
+/** Groepeert opeenvolgende gecombineerde oefeningen tot supersets. */
+function buildGroups(exercises: FlowExercise[]): FlowExercise[][] {
+  const groups: FlowExercise[][] = [];
+  for (const exercise of exercises) {
+    if (groups.length === 0 || !exercise.combinedWithPrevious) {
+      groups.push([exercise]);
+    } else {
+      groups[groups.length - 1].push(exercise);
+    }
+  }
+  return groups;
 }
 
 export function TrainingFlow({
@@ -57,26 +71,25 @@ export function TrainingFlow({
   // Snapshot van wat er is opgeslagen, om "niet-opgeslagen wijzigingen" te zien.
   const [snapshot, setSnapshot] = useState<Record<string, string>>(() =>
     Object.fromEntries(
-      exercises.map((e) => [
-        e.workoutExerciseId,
-        JSON.stringify(e.initialSets),
-      ]),
+      exercises.map((e) => [e.workoutExerciseId, JSON.stringify(e.initialSets)]),
     ),
   );
   // Notities per oefening (state in de flow zodat ze blijven bij navigeren).
   const [notesByExercise, setNotesByExercise] = useState<Record<string, string>>(
     () =>
-      Object.fromEntries(
-        exercises.map((e) => [e.workoutExerciseId, e.note ?? ""]),
-      ),
+      Object.fromEntries(exercises.map((e) => [e.workoutExerciseId, e.note ?? ""])),
   );
   const [savedNotes, setSavedNotes] = useState<Record<string, string>>(() =>
     Object.fromEntries(exercises.map((e) => [e.workoutExerciseId, e.note ?? ""])),
   );
-  const [noteError, setNoteError] = useState<string | null>(null);
 
   const [index, setIndex] = useState(0);
-  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<{ id: string; message: string } | null>(
+    null,
+  );
+  const [noteError, setNoteError] = useState<{ id: string; message: string } | null>(
+    null,
+  );
   const [finishError, setFinishError] = useState<string | null>(null);
   const [saving, startSaving] = useTransition();
   const [finishing, startFinishing] = useTransition();
@@ -99,61 +112,60 @@ export function TrainingFlow({
     );
   }
 
-  const current = exercises[index];
-  const rows = rowsByExercise[current.workoutExerciseId];
-  const dirty =
-    JSON.stringify(rows) !== snapshot[current.workoutExerciseId];
+  const groups = buildGroups(exercises);
+  const currentGroup = groups[index];
   const isFirst = index === 0;
-  const isLast = index === exercises.length - 1;
+  const isLast = index === groups.length - 1;
 
-  function mutateRows(updater: (rows: SetInput[]) => SetInput[]) {
-    const weId = current.workoutExerciseId;
+  function mutateRows(weId: string, updater: (rows: SetInput[]) => SetInput[]) {
     setRowsByExercise((prev) => ({ ...prev, [weId]: updater(prev[weId]) }));
     setSaveError(null);
   }
 
-  function addSet() {
-    mutateRows((rows) => [...rows, { ...EMPTY_SET }]);
+  function addSet(weId: string) {
+    mutateRows(weId, (rows) => [...rows, { ...EMPTY_SET }]);
   }
 
-  function removeSet(target: number) {
-    mutateRows((rows) => rows.filter((_, i) => i !== target));
+  function removeSet(weId: string, target: number) {
+    mutateRows(weId, (rows) => rows.filter((_, i) => i !== target));
   }
 
-  function changeCell(target: number, key: MeasurementKey, value: string) {
-    mutateRows((rows) =>
+  function changeCell(
+    weId: string,
+    target: number,
+    key: MeasurementKey,
+    value: string,
+  ) {
+    mutateRows(weId, (rows) =>
       rows.map((row, i) => (i === target ? { ...row, [key]: value } : row)),
     );
   }
 
-  function save() {
-    const weId = current.workoutExerciseId;
+  function save(weId: string) {
     const rowsNow = rowsByExercise[weId];
     setSaveError(null);
     startSaving(async () => {
       const result = await saveExerciseSets(sessionId, weId, rowsNow);
       if (result.error) {
-        setSaveError(result.error);
+        setSaveError({ id: weId, message: result.error });
       } else {
         setSnapshot((prev) => ({ ...prev, [weId]: JSON.stringify(rowsNow) }));
       }
     });
   }
 
-  function changeNote(value: string) {
-    const weId = current.workoutExerciseId;
+  function changeNote(weId: string, value: string) {
     setNotesByExercise((prev) => ({ ...prev, [weId]: value }));
     setNoteError(null);
   }
 
-  function saveNote() {
-    const weId = current.workoutExerciseId;
+  function saveNote(weId: string) {
     const noteNow = notesByExercise[weId];
     setNoteError(null);
     startSavingNote(async () => {
       const result = await updateExerciseNote(weId, workoutId, noteNow);
       if (result.error) {
-        setNoteError(result.error);
+        setNoteError({ id: weId, message: result.error });
       } else {
         setSavedNotes((prev) => ({ ...prev, [weId]: noteNow }));
       }
@@ -162,8 +174,8 @@ export function TrainingFlow({
 
   function goTo(next: number) {
     setSaveError(null);
-    setFinishError(null);
     setNoteError(null);
+    setFinishError(null);
     setIndex(next);
     window.scrollTo({ top: 0 });
   }
@@ -185,6 +197,8 @@ export function TrainingFlow({
     });
   }
 
+  const isSuperset = currentGroup.length > 1;
+
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-8 pb-40">
       <header className="flex items-start justify-between gap-4 border-b border-neutral-800 pb-4">
@@ -202,44 +216,54 @@ export function TrainingFlow({
       </header>
 
       <p className="mt-4 text-sm text-neutral-400">
-        Oefening {index + 1} / {exercises.length}
+        Onderdeel {index + 1} / {groups.length}
       </p>
       <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-neutral-800">
         <div
           className="h-full bg-neutral-300 transition-all"
-          style={{ width: `${((index + 1) / exercises.length) * 100}%` }}
+          style={{ width: `${((index + 1) / groups.length) * 100}%` }}
         />
       </div>
 
+      {isSuperset && (
+        <p className="mt-4 flex items-center gap-2 rounded-md border border-emerald-900/50 bg-emerald-950/20 px-3 py-2 text-sm font-medium text-emerald-400">
+          ⛓ Superset — doe deze {currentGroup.length} oefeningen om en om
+        </p>
+      )}
+
       <div className="mt-5 flex flex-col gap-4">
-        <ExerciseStep
-          key={current.workoutExerciseId}
-          exercise={current.exercise}
-          targets={current.targets}
-          rows={rows}
-          onAddSet={addSet}
-          onRemoveSet={removeSet}
-          onCellChange={changeCell}
-          onSave={save}
-          saving={saving}
-          dirty={dirty}
-          saved={hasData(rows)}
-          error={saveError}
-        />
-        <section className="rounded-xl border border-neutral-800 bg-neutral-950 p-5">
-          <NoteEditor
-            id={`note-${current.workoutExerciseId}`}
-            value={notesByExercise[current.workoutExerciseId]}
-            onChange={changeNote}
-            onSave={saveNote}
-            pending={savingNote}
-            dirty={
-              notesByExercise[current.workoutExerciseId].trim() !==
-              savedNotes[current.workoutExerciseId].trim()
-            }
-            error={noteError}
-          />
-        </section>
+        {currentGroup.map((ex) => {
+          const weId = ex.workoutExerciseId;
+          const exRows = rowsByExercise[weId];
+          return (
+            <div key={weId} className="flex flex-col gap-4">
+              <ExerciseStep
+                exercise={ex.exercise}
+                targets={ex.targets}
+                rows={exRows}
+                onAddSet={() => addSet(weId)}
+                onRemoveSet={(i) => removeSet(weId, i)}
+                onCellChange={(i, key, value) => changeCell(weId, i, key, value)}
+                onSave={() => save(weId)}
+                saving={saving}
+                dirty={JSON.stringify(exRows) !== snapshot[weId]}
+                saved={hasData(exRows)}
+                error={saveError?.id === weId ? saveError.message : null}
+              />
+              <section className="rounded-xl border border-neutral-800 bg-neutral-950 p-5">
+                <NoteEditor
+                  id={`note-${weId}`}
+                  value={notesByExercise[weId]}
+                  onChange={(value) => changeNote(weId, value)}
+                  onSave={() => saveNote(weId)}
+                  pending={savingNote}
+                  dirty={notesByExercise[weId].trim() !== savedNotes[weId].trim()}
+                  error={noteError?.id === weId ? noteError.message : null}
+                />
+              </section>
+            </div>
+          );
+        })}
       </div>
 
       <footer className="fixed inset-x-0 bottom-0 border-t border-neutral-800 bg-neutral-950/95 px-4 py-3 backdrop-blur">

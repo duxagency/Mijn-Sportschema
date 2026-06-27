@@ -8,10 +8,11 @@ import { MetricBadges } from "@/components/exercises/MetricBadges";
 import { TargetsForm } from "./TargetsForm";
 import { RemoveExerciseButton } from "./RemoveExerciseButton";
 import { ExerciseNote } from "./ExerciseNote";
+import { CombineToggle } from "./CombineToggle";
 
 export type WorkoutExerciseWithExercise = Pick<
   Tables<"workout_exercises">,
-  "id" | "position" | "note" | TargetKey
+  "id" | "position" | "note" | "combined_with_previous" | TargetKey
 > & {
   exercise: Tables<"exercises">;
 };
@@ -26,6 +27,8 @@ export function WorkoutExerciseCard({
   index: number;
 }) {
   const { exercise } = workoutExercise;
+  const hasPrevious = index > 0;
+  const combined = hasPrevious && workoutExercise.combined_with_previous;
 
   const {
     attributes,
@@ -46,9 +49,19 @@ export function WorkoutExerciseCard({
       ref={setNodeRef}
       style={style}
       className={`rounded-lg border border-neutral-800 bg-neutral-950 p-4 ${
+        combined ? "border-l-2 border-l-emerald-800" : ""
+      } ${
         isDragging ? "relative z-10 opacity-80 shadow-lg shadow-black/40" : ""
       }`}
     >
+      {hasPrevious && (
+        <CombineToggle
+          workoutExerciseId={workoutExercise.id}
+          workoutId={workoutId}
+          combined={combined}
+        />
+      )}
+
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-2">
           <button

@@ -105,6 +105,7 @@ export type Database = {
           target_minutes: number | null;
           target_distance: number | null;
           note: string | null;
+          combined_with_previous: boolean;
         };
         Insert: {
           id?: string;
@@ -117,6 +118,7 @@ export type Database = {
           target_minutes?: number | null;
           target_distance?: number | null;
           note?: string | null;
+          combined_with_previous?: boolean;
         };
         Update: {
           id?: string;
@@ -129,6 +131,7 @@ export type Database = {
           target_minutes?: number | null;
           target_distance?: number | null;
           note?: string | null;
+          combined_with_previous?: boolean;
         };
         Relationships: [
           {
