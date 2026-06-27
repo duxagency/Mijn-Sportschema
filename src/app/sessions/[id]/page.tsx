@@ -5,6 +5,7 @@ import type { Tables } from "@/types/database.types";
 import type { TargetKey } from "@/lib/targets";
 import type { SetInput } from "@/lib/actions/session-types";
 import { EMPTY_SET } from "@/lib/actions/session-types";
+import { primaryMeasurement } from "@/lib/measurements";
 import { formatDuration, formatSessionDate } from "@/lib/format";
 import { TrainingFlow, type FlowExercise } from "@/components/sessions/TrainingFlow";
 import {
@@ -161,32 +162,62 @@ export default async function SessionPage({
     );
   }
 
-  // Nog geen eigen sets in déze sessie? Haal dan de laatst afgeronde sessie
-  // van hetzelfde schema op, zodat we daarmee kunnen voorvullen.
-  const hasOwnSets = Object.keys(setsByExercise).length > 0;
+  // Laatst afgeronde training van dit schema → "vorige keer"-referentie + prefill.
   const previousSetsByExercise: Record<string, Tables<"session_sets">[]> = {};
+  const { data: previousSession } = await supabase
+    .from("sessions")
+    .select("id")
+    .eq("workout_id", session.workout_id)
+    .not("finished_at", "is", null)
+    .order("started_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  if (!hasOwnSets) {
-    const { data: previousSession } = await supabase
-      .from("sessions")
-      .select("id")
-      .eq("workout_id", session.workout_id)
-      .not("finished_at", "is", null)
-      .order("started_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+  if (previousSession) {
+    const { data: previousSets } = await supabase
+      .from("session_sets")
+      .select("*")
+      .eq("session_id", previousSession.id)
+      .order("set_number", { ascending: true });
 
-    if (previousSession) {
-      const { data: previousSets } = await supabase
-        .from("session_sets")
-        .select("*")
-        .eq("session_id", previousSession.id)
-        .order("set_number", { ascending: true });
-
-      for (const set of previousSets ?? []) {
-        (previousSetsByExercise[set.workout_exercise_id] ??= []).push(set);
-      }
+    for (const set of previousSets ?? []) {
+      (previousSetsByExercise[set.workout_exercise_id] ??= []).push(set);
     }
+  }
+
+  // PR per oefening: hoogste primaire meetwaarde over álle afgeronde trainingen.
+  const exerciseObjById = new Map(
+    exercises.map((row) => [row.exercise.id, row.exercise]),
+  );
+  const [
+    { data: finishedSessions },
+    { data: allWorkoutExercises },
+    { data: allSets },
+  ] = await Promise.all([
+    supabase.from("sessions").select("id").not("finished_at", "is", null),
+    supabase.from("workout_exercises").select("id, exercise_id"),
+    supabase
+      .from("session_sets")
+      .select("session_id, workout_exercise_id, reps, weight, minutes, distance"),
+  ]);
+
+  const finishedIds = new Set((finishedSessions ?? []).map((s) => s.id));
+  const weToExercise = new Map(
+    (allWorkoutExercises ?? []).map((we) => [we.id, we.exercise_id]),
+  );
+  const prByExerciseId = new Map<string, number>();
+  for (const set of allSets ?? []) {
+    if (!finishedIds.has(set.session_id)) continue;
+    const exId = weToExercise.get(set.workout_exercise_id);
+    if (!exId) continue;
+    const exObj = exerciseObjById.get(exId);
+    if (!exObj) continue;
+    const measurement = primaryMeasurement(exObj);
+    if (!measurement) continue;
+    const value = set[measurement.key];
+    if (value == null) continue;
+    const current = prByExerciseId.get(exId);
+    if (current == null || value > current) prByExerciseId.set(exId, value);
   }
 
   const flowExercises: FlowExercise[] = exercises.map((row) => {
@@ -201,12 +232,21 @@ export default async function SessionPage({
               ...EMPTY_SET,
             }));
 
+    const measurement = primaryMeasurement(row.exercise);
+    const prValue = prByExerciseId.get(row.exercise.id);
+    const pr =
+      measurement && prValue != null
+        ? { value: prValue, unit: measurement.unit }
+        : null;
+
     return {
       workoutExerciseId: row.id,
       exercise: row.exercise,
       targets: targetsOf(row),
       note: row.note,
       combinedWithPrevious: row.combined_with_previous,
+      previousSets: previous,
+      pr,
       initialSets,
     };
   });

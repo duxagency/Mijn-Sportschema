@@ -103,6 +103,33 @@ export function formatSet(
 }
 
 /**
+ * Compacte weergave van één set voor een referentie, bv. "80 kg × 8" voor
+ * gewicht+reps, anders de aanwezige meetwaarden ("8 reps", "0.75 min").
+ */
+export function formatSetShort(
+  exercise: Pick<Tables<"exercises">, MetricKey>,
+  set: Pick<Tables<"session_sets">, MeasurementKey>,
+): string {
+  if (
+    exercise.tracks_weight &&
+    exercise.tracks_reps &&
+    set.weight != null &&
+    set.reps != null
+  ) {
+    return `${set.weight} kg × ${set.reps}`;
+  }
+
+  const parts = visibleMeasurements(exercise)
+    .map((measurement) => {
+      const value = set[measurement.key];
+      return value != null ? `${value} ${measurement.unit}` : null;
+    })
+    .filter((part): part is string => part !== null);
+
+  return parts.length > 0 ? parts.join(" · ") : "—";
+}
+
+/**
  * Bouwt een korte referentie van de targets van een oefening, bv.
  * "3 sets · 10 reps · 20 kg". Geeft null als er geen enkele target staat.
  */

@@ -3,6 +3,7 @@
 import type { Tables } from "@/types/database.types";
 import type { TargetKey } from "@/lib/targets";
 import {
+  formatSetShort,
   formatTargetReference,
   visibleMeasurements,
   type MeasurementKey,
@@ -13,9 +14,16 @@ import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { FormError } from "@/components/ui/FormError";
 
+export type PreviousSet = Pick<
+  Tables<"session_sets">,
+  MeasurementKey
+>;
+
 export function ExerciseStep({
   exercise,
   targets,
+  previousSets,
+  pr,
   rows,
   onAddSet,
   onRemoveSet,
@@ -28,6 +36,8 @@ export function ExerciseStep({
 }: {
   exercise: Tables<"exercises">;
   targets: Record<TargetKey, number | null>;
+  previousSets: PreviousSet[];
+  pr: { value: number; unit: string } | null;
   rows: SetInput[];
   onAddSet: () => void;
   onRemoveSet: (index: number) => void;
@@ -52,6 +62,25 @@ export function ExerciseStep({
           <p className="text-sm text-neutral-400">
             <span className="text-neutral-500">Target:</span> {reference}
           </p>
+        )}
+        {(pr || previousSets.length > 0) && (
+          <div className="flex flex-col gap-1 rounded-lg border border-neutral-800 bg-neutral-900/40 px-3 py-2 text-xs">
+            {pr && (
+              <p className="text-amber-400">
+                🏆 PR: {pr.value} {pr.unit}
+              </p>
+            )}
+            {previousSets.length > 0 && (
+              <p className="text-neutral-400">
+                Vorige keer:{" "}
+                <span className="text-neutral-200">
+                  {previousSets
+                    .map((set) => formatSetShort(exercise, set))
+                    .join(", ")}
+                </span>
+              </p>
+            )}
+          </div>
         )}
       </div>
 

@@ -13,7 +13,7 @@ import {
 import { finishSession, saveExerciseSets } from "@/lib/actions/sessions";
 import { updateExerciseNote } from "@/lib/actions/workouts";
 import { FormError } from "@/components/ui/FormError";
-import { ExerciseStep } from "./ExerciseStep";
+import { ExerciseStep, type PreviousSet } from "./ExerciseStep";
 import { DeleteSessionButton } from "./DeleteSessionButton";
 import { RestTimer } from "./RestTimer";
 import { NoteEditor } from "@/components/workouts/NoteEditor";
@@ -24,6 +24,8 @@ export type FlowExercise = {
   targets: Record<TargetKey, number | null>;
   note: string | null;
   combinedWithPrevious: boolean;
+  previousSets: PreviousSet[];
+  pr: { value: number; unit: string } | null;
   initialSets: SetInput[];
 };
 
@@ -240,6 +242,8 @@ export function TrainingFlow({
               <ExerciseStep
                 exercise={ex.exercise}
                 targets={ex.targets}
+                previousSets={ex.previousSets}
+                pr={ex.pr}
                 rows={exRows}
                 onAddSet={() => addSet(weId)}
                 onRemoveSet={(i) => removeSet(weId, i)}
