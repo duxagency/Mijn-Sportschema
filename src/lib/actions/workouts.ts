@@ -148,6 +148,31 @@ export async function reorderWorkoutExercises(
   return { error: null };
 }
 
+/**
+ * Slaat de notitie bij een oefening-in-een-schema op. De notitie hangt aan de
+ * workout_exercise, dus blijft bij dat schema en komt terug bij elke training.
+ */
+export async function updateExerciseNote(
+  workoutExerciseId: string,
+  workoutId: string,
+  note: string,
+): Promise<WorkoutFormState> {
+  const trimmed = note.trim();
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("workout_exercises")
+    .update({ note: trimmed === "" ? null : trimmed })
+    .eq("id", workoutExerciseId);
+
+  if (error) {
+    return { error: "Notitie opslaan mislukt. Probeer het opnieuw." };
+  }
+
+  revalidatePath(`/workouts/${workoutId}`);
+  return { error: null };
+}
+
 // ---------------------------------------------------------------------------
 // Targets per oefening
 // ---------------------------------------------------------------------------

@@ -7,10 +7,11 @@ import type { TargetKey } from "@/lib/targets";
 import { MetricBadges } from "@/components/exercises/MetricBadges";
 import { TargetsForm } from "./TargetsForm";
 import { RemoveExerciseButton } from "./RemoveExerciseButton";
+import { ExerciseNote } from "./ExerciseNote";
 
 export type WorkoutExerciseWithExercise = Pick<
   Tables<"workout_exercises">,
-  "id" | "position" | TargetKey
+  "id" | "position" | "note" | TargetKey
 > & {
   exercise: Tables<"exercises">;
 };
@@ -88,6 +89,14 @@ export function WorkoutExerciseCard({
             target_minutes: workoutExercise.target_minutes,
             target_distance: workoutExercise.target_distance,
           }}
+        />
+      </div>
+
+      <div className="mt-4 border-t border-neutral-800 pt-4">
+        <ExerciseNote
+          workoutExerciseId={workoutExercise.id}
+          workoutId={workoutId}
+          initialNote={workoutExercise.note}
         />
       </div>
     </li>

@@ -104,6 +104,7 @@ export type Database = {
           target_weight: number | null;
           target_minutes: number | null;
           target_distance: number | null;
+          note: string | null;
         };
         Insert: {
           id?: string;
@@ -115,6 +116,7 @@ export type Database = {
           target_weight?: number | null;
           target_minutes?: number | null;
           target_distance?: number | null;
+          note?: string | null;
         };
         Update: {
           id?: string;
@@ -126,6 +128,7 @@ export type Database = {
           target_weight?: number | null;
           target_minutes?: number | null;
           target_distance?: number | null;
+          note?: string | null;
         };
         Relationships: [
           {

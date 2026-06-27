@@ -16,7 +16,7 @@ import { FormError } from "@/components/ui/FormError";
 
 type WorkoutExerciseRow = Pick<
   Tables<"workout_exercises">,
-  "id" | "position" | TargetKey
+  "id" | "position" | "note" | TargetKey
 > & { exercise: Tables<"exercises"> };
 
 const numToStr = (value: number | null) => (value == null ? "" : String(value));
@@ -59,7 +59,7 @@ export default async function SessionPage({
       supabase
         .from("workout_exercises")
         .select(
-          "id, position, target_sets, target_reps, target_weight, target_minutes, target_distance, exercise:exercises(*)",
+          "id, position, note, target_sets, target_reps, target_weight, target_minutes, target_distance, exercise:exercises(*)",
         )
         .eq("workout_id", session.workout_id)
         .order("position", { ascending: true }),
@@ -205,6 +205,7 @@ export default async function SessionPage({
       workoutExerciseId: row.id,
       exercise: row.exercise,
       targets: targetsOf(row),
+      note: row.note,
       initialSets,
     };
   });
@@ -212,6 +213,7 @@ export default async function SessionPage({
   return (
     <TrainingFlow
       sessionId={session.id}
+      workoutId={session.workout_id}
       workoutName={workoutName}
       exercises={flowExercises}
     />

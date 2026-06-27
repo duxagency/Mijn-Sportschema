@@ -11,15 +11,18 @@ import {
   type SetInput,
 } from "@/lib/actions/session-types";
 import { finishSession, saveExerciseSets } from "@/lib/actions/sessions";
+import { updateExerciseNote } from "@/lib/actions/workouts";
 import { FormError } from "@/components/ui/FormError";
 import { ExerciseStep } from "./ExerciseStep";
 import { DeleteSessionButton } from "./DeleteSessionButton";
 import { RestTimer } from "./RestTimer";
+import { NoteEditor } from "@/components/workouts/NoteEditor";
 
 export type FlowExercise = {
   workoutExerciseId: string;
   exercise: Tables<"exercises">;
   targets: Record<TargetKey, number | null>;
+  note: string | null;
   initialSets: SetInput[];
 };
 
@@ -30,10 +33,12 @@ function hasData(rows: SetInput[]): boolean {
 
 export function TrainingFlow({
   sessionId,
+  workoutId,
   workoutName,
   exercises,
 }: {
   sessionId: string;
+  workoutId: string;
   workoutName: string;
   exercises: FlowExercise[];
 }) {
@@ -58,11 +63,24 @@ export function TrainingFlow({
       ]),
     ),
   );
+  // Notities per oefening (state in de flow zodat ze blijven bij navigeren).
+  const [notesByExercise, setNotesByExercise] = useState<Record<string, string>>(
+    () =>
+      Object.fromEntries(
+        exercises.map((e) => [e.workoutExerciseId, e.note ?? ""]),
+      ),
+  );
+  const [savedNotes, setSavedNotes] = useState<Record<string, string>>(() =>
+    Object.fromEntries(exercises.map((e) => [e.workoutExerciseId, e.note ?? ""])),
+  );
+  const [noteError, setNoteError] = useState<string | null>(null);
+
   const [index, setIndex] = useState(0);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [finishError, setFinishError] = useState<string | null>(null);
   const [saving, startSaving] = useTransition();
   const [finishing, startFinishing] = useTransition();
+  const [savingNote, startSavingNote] = useTransition();
 
   if (exercises.length === 0) {
     return (
@@ -122,9 +140,30 @@ export function TrainingFlow({
     });
   }
 
+  function changeNote(value: string) {
+    const weId = current.workoutExerciseId;
+    setNotesByExercise((prev) => ({ ...prev, [weId]: value }));
+    setNoteError(null);
+  }
+
+  function saveNote() {
+    const weId = current.workoutExerciseId;
+    const noteNow = notesByExercise[weId];
+    setNoteError(null);
+    startSavingNote(async () => {
+      const result = await updateExerciseNote(weId, workoutId, noteNow);
+      if (result.error) {
+        setNoteError(result.error);
+      } else {
+        setSavedNotes((prev) => ({ ...prev, [weId]: noteNow }));
+      }
+    });
+  }
+
   function goTo(next: number) {
     setSaveError(null);
     setFinishError(null);
+    setNoteError(null);
     setIndex(next);
     window.scrollTo({ top: 0 });
   }
@@ -172,7 +211,7 @@ export function TrainingFlow({
         />
       </div>
 
-      <div className="mt-5">
+      <div className="mt-5 flex flex-col gap-4">
         <ExerciseStep
           key={current.workoutExerciseId}
           exercise={current.exercise}
@@ -187,6 +226,20 @@ export function TrainingFlow({
           saved={hasData(rows)}
           error={saveError}
         />
+        <section className="rounded-xl border border-neutral-800 bg-neutral-950 p-5">
+          <NoteEditor
+            id={`note-${current.workoutExerciseId}`}
+            value={notesByExercise[current.workoutExerciseId]}
+            onChange={changeNote}
+            onSave={saveNote}
+            pending={savingNote}
+            dirty={
+              notesByExercise[current.workoutExerciseId].trim() !==
+              savedNotes[current.workoutExerciseId].trim()
+            }
+            error={noteError}
+          />
+        </section>
       </div>
 
       <footer className="fixed inset-x-0 bottom-0 border-t border-neutral-800 bg-neutral-950/95 px-4 py-3 backdrop-blur">
