@@ -29,6 +29,21 @@ const toSetInput = (set: Tables<"session_sets">): SetInput => ({
   distance: numToStr(set.distance),
 });
 
+/** Hoogste waarde van de primaire meetwaarde over een set-lijst, of null. */
+function bestPrimaryValue(
+  exercise: Tables<"exercises">,
+  sets: Tables<"session_sets">[],
+): number | null {
+  const measurement = primaryMeasurement(exercise);
+  if (!measurement) return null;
+  let best: number | null = null;
+  for (const set of sets) {
+    const value = set[measurement.key];
+    if (value != null && (best == null || value > best)) best = value;
+  }
+  return best;
+}
+
 export default async function SessionPage({
   params,
 }: {
@@ -98,6 +113,46 @@ export default async function SessionPage({
       targets: targetsOf(row),
     }));
 
+    // Vorige afgeronde training van dit schema (vóór deze) → verbeteringen.
+    const improvementByExercise: Record<
+      string,
+      { delta: number; unit: string }
+    > = {};
+
+    const { data: prevSession } = await supabase
+      .from("sessions")
+      .select("id")
+      .eq("workout_id", session.workout_id)
+      .not("finished_at", "is", null)
+      .lt("started_at", session.started_at)
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (prevSession) {
+      const { data: prevSets } = await supabase
+        .from("session_sets")
+        .select("*")
+        .eq("session_id", prevSession.id);
+
+      const prevByExercise: Record<string, Tables<"session_sets">[]> = {};
+      for (const set of prevSets ?? []) {
+        (prevByExercise[set.workout_exercise_id] ??= []).push(set);
+      }
+
+      for (const row of exercises) {
+        const measurement = primaryMeasurement(row.exercise);
+        if (!measurement) continue;
+        const now = bestPrimaryValue(row.exercise, setsByExercise[row.id] ?? []);
+        const before = bestPrimaryValue(row.exercise, prevByExercise[row.id] ?? []);
+        if (now == null || before == null) continue;
+        improvementByExercise[row.id] = {
+          delta: now - before,
+          unit: measurement.unit,
+        };
+      }
+    }
+
     return (
       <main className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-10">
         <header className="flex items-start justify-between gap-4 border-b border-neutral-800 pb-6">
@@ -131,8 +186,16 @@ export default async function SessionPage({
           <SessionReview
             exercises={reviewExercises}
             setsByExercise={setsByExercise}
+            improvements={improvementByExercise}
           />
         )}
+
+        <Link
+          href="/dashboard"
+          className="mt-8 block w-full rounded-lg bg-neutral-100 px-4 py-3 text-center text-base font-semibold text-neutral-900 transition hover:bg-white"
+        >
+          Terug naar dashboard
+        </Link>
       </main>
     );
   }

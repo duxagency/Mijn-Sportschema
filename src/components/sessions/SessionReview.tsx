@@ -12,9 +12,11 @@ export type ReviewExercise = {
 export function SessionReview({
   exercises,
   setsByExercise,
+  improvements = {},
 }: {
   exercises: ReviewExercise[];
   setsByExercise: Record<string, Tables<"session_sets">[]>;
+  improvements?: Record<string, { delta: number; unit: string }>;
 }) {
   if (exercises.length === 0) {
     return (
@@ -29,6 +31,7 @@ export function SessionReview({
       {exercises.map(({ workoutExerciseId, exercise, targets }) => {
         const sets = setsByExercise[workoutExerciseId] ?? [];
         const reference = formatTargetReference(exercise, targets);
+        const improvement = improvements[workoutExerciseId];
 
         return (
           <section
@@ -36,7 +39,10 @@ export function SessionReview({
             className="rounded-lg border border-neutral-800 bg-neutral-950 p-4"
           >
             <div className="flex flex-col gap-2">
-              <h2 className="font-medium text-neutral-100">{exercise.name}</h2>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                <h2 className="font-medium text-neutral-100">{exercise.name}</h2>
+                {improvement && <ImprovementBadge improvement={improvement} />}
+              </div>
               <MetricBadges exercise={exercise} />
               {reference && (
                 <p className="text-xs text-neutral-500">Target: {reference}</p>
@@ -68,5 +74,32 @@ export function SessionReview({
         );
       })}
     </div>
+  );
+}
+
+function ImprovementBadge({
+  improvement,
+}: {
+  improvement: { delta: number; unit: string };
+}) {
+  const delta = Number(improvement.delta.toFixed(2));
+  const { unit } = improvement;
+
+  if (delta > 0) {
+    return (
+      <span className="text-xs font-medium text-emerald-400">
+        ↑ +{delta} {unit} t.o.v. vorige keer
+      </span>
+    );
+  }
+  if (delta < 0) {
+    return (
+      <span className="text-xs font-medium text-amber-400">
+        ↓ {delta} {unit} t.o.v. vorige keer
+      </span>
+    );
+  }
+  return (
+    <span className="text-xs text-neutral-500">gelijk aan vorige keer</span>
   );
 }
