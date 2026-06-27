@@ -64,21 +64,28 @@ export function ExerciseStep({
           </p>
         )}
         {(pr || previousSets.length > 0) && (
-          <div className="flex flex-col gap-1 rounded-lg border border-neutral-800 bg-neutral-900/40 px-3 py-2 text-xs">
+          <div className="flex flex-col gap-2 rounded-lg border border-neutral-800 bg-neutral-900/40 px-3 py-2.5 text-xs">
             {pr && (
-              <p className="text-amber-400">
+              <p className="font-medium text-amber-400">
                 🏆 PR: {pr.value} {pr.unit}
               </p>
             )}
             {previousSets.length > 0 && (
-              <p className="text-neutral-400">
-                Vorige keer:{" "}
-                <span className="text-neutral-200">
-                  {previousSets
-                    .map((set) => formatSetShort(exercise, set))
-                    .join(", ")}
-                </span>
-              </p>
+              <div className="flex flex-col gap-1">
+                <p className="text-neutral-500">Vorige keer</p>
+                <ul className="flex flex-col gap-0.5">
+                  {previousSets.map((set, i) => (
+                    <li key={i} className="flex items-baseline gap-3">
+                      <span className="w-10 shrink-0 tabular-nums text-neutral-500">
+                        Set {i + 1}
+                      </span>
+                      <span className="text-neutral-200">
+                        {formatSetShort(exercise, set)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
         )}
