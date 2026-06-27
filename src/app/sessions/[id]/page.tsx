@@ -286,14 +286,14 @@ export default async function SessionPage({
   const flowExercises: FlowExercise[] = exercises.map((row) => {
     const existing = setsByExercise[row.id] ?? [];
     const previous = previousSetsByExercise[row.id] ?? [];
+    // Velden niet voorvullen: lege rijen op basis van het aantal target-sets.
+    // De vorige waarden staan als referentie bovenaan de oefening.
     const initialSets: SetInput[] =
       existing.length > 0
         ? existing.map(toSetInput)
-        : previous.length > 0
-          ? previous.map(toSetInput)
-          : Array.from({ length: Math.max(1, row.target_sets ?? 1) }, () => ({
-              ...EMPTY_SET,
-            }));
+        : Array.from({ length: Math.max(1, row.target_sets ?? 1) }, () => ({
+            ...EMPTY_SET,
+          }));
 
     const measurement = primaryMeasurement(row.exercise);
     const prValue = prByExerciseId.get(row.exercise.id);
