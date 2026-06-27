@@ -35,9 +35,12 @@ export function SortableExerciseList({
   const [, startTransition] = useTransition();
 
   // De server kan de lijst opnieuw aanleveren (toevoegen, verwijderen,
-  // revalidate); reset de lokale volgorde wanneer dat gebeurt. Tijdens het
-  // renderen bijwerken i.p.v. in een effect voorkomt cascading renders.
-  const serverSignature = exercises.map((item) => item.id).join(",");
+  // combineren, revalidate); reset de lokale volgorde wanneer dat gebeurt. De
+  // combineer-vlag zit in de signatuur zodat een wijziging daarvan ook
+  // doorkomt. Tijdens het renderen bijwerken voorkomt cascading renders.
+  const serverSignature = exercises
+    .map((item) => `${item.id}:${item.combined_with_previous}`)
+    .join(",");
   const [prevSignature, setPrevSignature] = useState(serverSignature);
   if (serverSignature !== prevSignature) {
     setPrevSignature(serverSignature);
