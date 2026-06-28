@@ -25,7 +25,11 @@ export function RemoveExerciseButton({
       <form
         action={formAction}
         onSubmit={(event) => {
-          if (!confirm(`"${exerciseName}" uit dit schema verwijderen?`)) {
+          if (
+            !confirm(
+              `"${exerciseName}" uit dit schema verwijderen? Let op: je eerder gelogde sets voor deze oefening in dit schema gaan ook verloren.`,
+            )
+          ) {
             event.preventDefault();
           }
         }}

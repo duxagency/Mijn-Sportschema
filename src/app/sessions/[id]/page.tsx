@@ -225,7 +225,7 @@ export default async function SessionPage({
     );
   }
 
-  // Laatst afgeronde training van dit schema → "vorige keer"-referentie + prefill.
+  // Laatst afgeronde training van dit schema → "vorige keer"-referentie.
   const previousSetsByExercise: Record<string, Tables<"session_sets">[]> = {};
   const { data: previousSession } = await supabase
     .from("sessions")

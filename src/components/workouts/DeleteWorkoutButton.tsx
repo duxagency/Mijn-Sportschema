@@ -23,7 +23,11 @@ export function DeleteWorkoutButton({
       <form
         action={formAction}
         onSubmit={(event) => {
-          if (!confirm(`Schema "${name}" en alle oefeningen erin verwijderen?`)) {
+          if (
+            !confirm(
+              `Schema "${name}" verwijderen? Ook alle trainingen en gelogde sets van dit schema worden verwijderd.`,
+            )
+          ) {
             event.preventDefault();
           }
         }}
