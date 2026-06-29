@@ -10,7 +10,12 @@ import {
   type ExerciseSets,
   type SetInput,
 } from "@/lib/actions/session-types";
-import { finishSession, saveExerciseSets } from "@/lib/actions/sessions";
+import Link from "next/link";
+import {
+  finishSession,
+  saveExerciseSets,
+  updateFinishedSession,
+} from "@/lib/actions/sessions";
 import { updateExerciseNote } from "@/lib/actions/workouts";
 import { FormError } from "@/components/ui/FormError";
 import { ExerciseStep, type PreviousSet } from "./ExerciseStep";
@@ -59,13 +64,16 @@ export function TrainingFlow({
   workoutId,
   workoutName,
   exercises,
+  mode = "active",
 }: {
   sessionId: string;
   workoutId: string;
   workoutName: string;
   exercises: FlowExercise[];
+  mode?: "active" | "edit";
 }) {
   const router = useRouter();
+  const isEdit = mode === "edit";
 
   const [rowsByExercise, setRowsByExercise] = useState<
     Record<string, SetInput[]>
@@ -214,16 +222,21 @@ export function TrainingFlow({
   }
 
   function finish() {
-    if (!confirm("Training afronden?")) return;
+    if (!isEdit && !confirm("Training afronden?")) return;
     setFinishError(null);
     const allSets: ExerciseSets[] = exercises.map((e) => ({
       workoutExerciseId: e.workoutExerciseId,
       sets: rowsByExercise[e.workoutExerciseId],
     }));
     startFinishing(async () => {
-      const result = await finishSession(sessionId, allSets);
+      const result = isEdit
+        ? await updateFinishedSession(sessionId, allSets)
+        : await finishSession(sessionId, allSets);
       if (result.error) {
         setFinishError(result.error);
+      } else if (isEdit) {
+        router.push(`/sessions/${sessionId}`);
+        router.refresh();
       } else {
         router.refresh();
       }
@@ -238,16 +251,27 @@ export function TrainingFlow({
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-8 pb-40">
       <header className="flex items-start justify-between gap-4 border-b border-neutral-800 pb-4">
         <div>
-          <p className="text-sm text-neutral-400">Training bezig</p>
+          <p className="text-sm text-neutral-400">
+            {isEdit ? "Training aanpassen" : "Training bezig"}
+          </p>
           <h1 className="text-xl font-semibold text-neutral-100">
             {workoutName}
           </h1>
         </div>
-        <DeleteSessionButton
-          sessionId={sessionId}
-          label="Afbreken"
-          confirmText="Deze training afbreken? Je verliest de ingevoerde sets."
-        />
+        {isEdit ? (
+          <Link
+            href={`/sessions/${sessionId}`}
+            className="shrink-0 text-sm text-neutral-400 underline-offset-4 hover:text-neutral-200 hover:underline"
+          >
+            Annuleren
+          </Link>
+        ) : (
+          <DeleteSessionButton
+            sessionId={sessionId}
+            label="Afbreken"
+            confirmText="Deze training afbreken? Je verliest de ingevoerde sets."
+          />
+        )}
       </header>
 
       <p className="mt-4 text-sm text-neutral-400">
@@ -306,9 +330,11 @@ export function TrainingFlow({
       </div>
 
       <footer className="fixed inset-x-0 bottom-0 border-t border-neutral-800 bg-neutral-950/95 px-4 py-3 backdrop-blur">
-        <div className="mx-auto mb-2 flex max-w-2xl items-center justify-center overflow-x-auto">
-          <RestTimer suggestedSeconds={suggestedRest} />
-        </div>
+        {!isEdit && (
+          <div className="mx-auto mb-2 flex max-w-2xl items-center justify-center overflow-x-auto">
+            <RestTimer suggestedSeconds={suggestedRest} />
+          </div>
+        )}
         <div className="mx-auto flex max-w-2xl items-center gap-3">
           <button
             type="button"
@@ -325,7 +351,13 @@ export function TrainingFlow({
               disabled={finishing}
               className="flex-1 rounded-lg bg-neutral-100 px-4 py-3 text-base font-semibold text-neutral-900 transition hover:bg-white disabled:cursor-not-allowed disabled:bg-neutral-400"
             >
-              {finishing ? "Afronden…" : "Training afronden"}
+              {isEdit
+                ? finishing
+                  ? "Opslaan…"
+                  : "Wijzigingen opslaan"
+                : finishing
+                  ? "Afronden…"
+                  : "Training afronden"}
             </button>
           ) : (
             <button

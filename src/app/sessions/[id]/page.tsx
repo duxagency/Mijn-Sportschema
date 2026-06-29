@@ -56,10 +56,14 @@ function bestPrimaryValue(
 
 export default async function SessionPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ edit?: string }>;
 }) {
   const { id } = await params;
+  const { edit } = await searchParams;
+  const editMode = edit === "1";
   const supabase = await createClient();
 
   const { data: session } = await supabase
@@ -118,6 +122,42 @@ export default async function SessionPage({
   // Afgeronde training: alleen-lezen terugblik.
   // -------------------------------------------------------------------------
   if (session.finished_at) {
+    // Correctie achteraf: dezelfde flow, maar in edit-modus (zonder PR/vorige
+    // keer, finished_at blijft staan).
+    if (editMode && !exercisesError) {
+      const editFlow: FlowExercise[] = exercises
+        .filter(
+          (row) => row.is_active || (setsByExercise[row.id]?.length ?? 0) > 0,
+        )
+        .map((row) => {
+          const existing = setsByExercise[row.id] ?? [];
+          return {
+            workoutExerciseId: row.id,
+            exercise: row.exercise,
+            targets: targetsOf(row),
+            note: row.note,
+            combinedWithPrevious: row.combined_with_previous,
+            restSeconds: row.rest_seconds,
+            previousSets: [],
+            pr: null,
+            initialSets:
+              existing.length > 0
+                ? existing.map(toSetInput)
+                : [{ ...EMPTY_SET }],
+          };
+        });
+
+      return (
+        <TrainingFlow
+          mode="edit"
+          sessionId={session.id}
+          workoutId={session.workout_id}
+          workoutName={workoutName}
+          exercises={editFlow}
+        />
+      );
+    }
+
     // Toon actieve oefeningen + verwijderde oefeningen die in déze training
     // wel sets hebben (historie blijft zo zichtbaar).
     const reviewExercises: ReviewExercise[] = exercises
@@ -188,11 +228,19 @@ export default async function SessionPage({
               {formatDuration(session.started_at, session.finished_at)}
             </p>
           </div>
-          <DeleteSessionButton
-            sessionId={session.id}
-            label="Verwijderen"
-            confirmText="Deze training uit je historie verwijderen?"
-          />
+          <div className="flex shrink-0 flex-col items-end gap-2">
+            <Link
+              href={`/sessions/${session.id}?edit=1`}
+              className="text-sm font-medium text-neutral-300 underline-offset-4 hover:text-neutral-100 hover:underline"
+            >
+              Aanpassen
+            </Link>
+            <DeleteSessionButton
+              sessionId={session.id}
+              label="Verwijderen"
+              confirmText="Deze training uit je historie verwijderen?"
+            />
+          </div>
         </header>
 
         {exercisesError ? (

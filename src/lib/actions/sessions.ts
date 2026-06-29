@@ -246,6 +246,67 @@ export async function finishSession(
 }
 
 // ---------------------------------------------------------------------------
+// Sets van een afgeronde training aanpassen (correctie achteraf)
+// ---------------------------------------------------------------------------
+
+/**
+ * Vervangt de sets van een reeds afgeronde sessie zonder finished_at te
+ * wijzigen. RLS zorgt dat dit alleen de eigen sessie betreft.
+ */
+export async function updateFinishedSession(
+  sessionId: string,
+  allSets: ExerciseSets[],
+): Promise<SessionFormState> {
+  const supabase = await createClient();
+
+  const rows: {
+    session_id: string;
+    workout_exercise_id: string;
+    set_number: number;
+    is_warmup: boolean;
+  }[] = [];
+
+  for (const exercise of allSets) {
+    let setNumber = 0;
+    for (const input of exercise.sets) {
+      const parsed = parseSetRow(input);
+      if (!parsed.ok) return { error: parsed.error };
+      if (isEmptyRow(parsed.data)) continue;
+
+      setNumber += 1;
+      rows.push({
+        session_id: sessionId,
+        workout_exercise_id: exercise.workoutExerciseId,
+        set_number: setNumber,
+        is_warmup: input.warmup,
+        ...parsed.data,
+      });
+    }
+  }
+
+  const { error: deleteError } = await supabase
+    .from("session_sets")
+    .delete()
+    .eq("session_id", sessionId);
+  if (deleteError) {
+    return { error: "Opslaan mislukt. Probeer het opnieuw." };
+  }
+
+  if (rows.length > 0) {
+    const { error: insertError } = await supabase
+      .from("session_sets")
+      .insert(rows);
+    if (insertError) {
+      return { error: "Opslaan mislukt. Probeer het opnieuw." };
+    }
+  }
+
+  revalidatePath(`/sessions/${sessionId}`);
+  revalidatePath("/sessions");
+  return { error: null };
+}
+
+// ---------------------------------------------------------------------------
 // Een training verwijderen (afbreken of uit de historie wissen)
 // ---------------------------------------------------------------------------
 
