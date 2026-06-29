@@ -35,7 +35,7 @@ function notifyDone() {
 }
 
 /** Rust-timer voor tussen de sets. Beheert z'n eigen aftel-state. */
-export function RestTimer() {
+export function RestTimer({ suggestedSeconds }: { suggestedSeconds?: number | null }) {
   const [remaining, setRemaining] = useState<number | null>(null);
   const [running, setRunning] = useState(false);
 
@@ -61,11 +61,23 @@ export function RestTimer() {
   const btn =
     "rounded-md border border-neutral-700 px-2.5 py-1 text-xs font-medium text-neutral-200 transition hover:bg-neutral-800 disabled:opacity-40";
 
+  const suggested =
+    suggestedSeconds && suggestedSeconds > 0 ? suggestedSeconds : null;
+
   if (remaining == null) {
     return (
       <div className="flex items-center gap-2">
         <span className="text-xs text-neutral-500">Rust</span>
-        {PRESETS.map((seconds) => (
+        {suggested && (
+          <button
+            type="button"
+            onClick={() => start(suggested)}
+            className="rounded-md border border-emerald-700 bg-emerald-950/30 px-2.5 py-1 text-xs font-medium text-emerald-300 transition hover:bg-emerald-900/40"
+          >
+            {format(suggested)}
+          </button>
+        )}
+        {PRESETS.filter((seconds) => seconds !== suggested).map((seconds) => (
           <button
             key={seconds}
             type="button"

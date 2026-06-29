@@ -15,11 +15,13 @@ export function TargetsForm({
   workoutId,
   exercise,
   targets,
+  restSeconds,
 }: {
   workoutExerciseId: string;
   workoutId: string;
   exercise: Pick<Tables<"exercises">, MetricKey>;
   targets: Record<TargetKey, number | null>;
+  restSeconds: number | null;
 }) {
   const [state, formAction] = useActionState(
     updateTargets.bind(null, workoutExerciseId, workoutId),
@@ -43,6 +45,16 @@ export function TargetsForm({
             placeholder="—"
           />
         ))}
+        <Input
+          label="Rust (sec)"
+          name="rest_seconds"
+          type="number"
+          inputMode="numeric"
+          min={0}
+          step={5}
+          defaultValue={restSeconds ?? ""}
+          placeholder="—"
+        />
       </div>
       <FormError message={state.error} />
       <div>

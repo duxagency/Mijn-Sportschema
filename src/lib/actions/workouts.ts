@@ -236,6 +236,21 @@ function parseTargets(
   return { ok: true, data: result };
 }
 
+/** Parset een optioneel heel-getal-veld (>= 0), of geeft een foutmelding. */
+function parseOptionalInt(
+  formData: FormData,
+  key: string,
+  label: string,
+): { ok: true; value: number | null } | { ok: false; error: string } {
+  const raw = String(formData.get(key) ?? "").trim();
+  if (raw === "") return { ok: true, value: null };
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value < 0 || !Number.isInteger(value)) {
+    return { ok: false, error: `${label} moet een heel getal van 0 of hoger zijn.` };
+  }
+  return { ok: true, value };
+}
+
 export async function updateTargets(
   workoutExerciseId: string,
   workoutId: string,
@@ -247,10 +262,15 @@ export async function updateTargets(
     return { error: parsed.error };
   }
 
+  const rest = parseOptionalInt(formData, "rest_seconds", "Rusttijd");
+  if (!rest.ok) {
+    return { error: rest.error };
+  }
+
   const supabase = await createClient();
   const { error } = await supabase
     .from("workout_exercises")
-    .update(parsed.data)
+    .update({ ...parsed.data, rest_seconds: rest.value })
     .eq("id", workoutExerciseId);
 
   if (error) {

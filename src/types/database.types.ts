@@ -107,6 +107,7 @@ export type Database = {
           note: string | null;
           combined_with_previous: boolean;
           is_active: boolean;
+          rest_seconds: number | null;
         };
         Insert: {
           id?: string;
@@ -121,6 +122,7 @@ export type Database = {
           note?: string | null;
           combined_with_previous?: boolean;
           is_active?: boolean;
+          rest_seconds?: number | null;
         };
         Update: {
           id?: string;
@@ -135,6 +137,7 @@ export type Database = {
           note?: string | null;
           combined_with_previous?: boolean;
           is_active?: boolean;
+          rest_seconds?: number | null;
         };
         Relationships: [
           {

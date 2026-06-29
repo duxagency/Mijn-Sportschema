@@ -17,7 +17,13 @@ import { FormError } from "@/components/ui/FormError";
 
 type WorkoutExerciseRow = Pick<
   Tables<"workout_exercises">,
-  "id" | "position" | "note" | "combined_with_previous" | "is_active" | TargetKey
+  | "id"
+  | "position"
+  | "note"
+  | "combined_with_previous"
+  | "is_active"
+  | "rest_seconds"
+  | TargetKey
 > & { exercise: Tables<"exercises"> };
 
 const numToStr = (value: number | null) => (value == null ? "" : String(value));
@@ -75,7 +81,7 @@ export default async function SessionPage({
       supabase
         .from("workout_exercises")
         .select(
-          "id, position, note, combined_with_previous, is_active, target_sets, target_reps, target_weight, target_minutes, target_distance, exercise:exercises(*)",
+          "id, position, note, combined_with_previous, is_active, rest_seconds, target_sets, target_reps, target_weight, target_minutes, target_distance, exercise:exercises(*)",
         )
         .eq("workout_id", session.workout_id)
         .order("position", { ascending: true }),
@@ -316,6 +322,7 @@ export default async function SessionPage({
       targets: targetsOf(row),
       note: row.note,
       combinedWithPrevious: row.combined_with_previous,
+      restSeconds: row.rest_seconds,
       previousSets: previous,
       pr,
       initialSets,

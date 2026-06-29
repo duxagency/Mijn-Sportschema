@@ -24,6 +24,7 @@ export type FlowExercise = {
   targets: Record<TargetKey, number | null>;
   note: string | null;
   combinedWithPrevious: boolean;
+  restSeconds: number | null;
   previousSets: PreviousSet[];
   pr: { value: number; unit: string } | null;
   initialSets: SetInput[];
@@ -200,6 +201,8 @@ export function TrainingFlow({
   }
 
   const isSuperset = currentGroup.length > 1;
+  const suggestedRest =
+    currentGroup.find((e) => e.restSeconds != null)?.restSeconds ?? null;
 
   return (
     <main className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-8 pb-40">
@@ -272,7 +275,7 @@ export function TrainingFlow({
 
       <footer className="fixed inset-x-0 bottom-0 border-t border-neutral-800 bg-neutral-950/95 px-4 py-3 backdrop-blur">
         <div className="mx-auto mb-2 flex max-w-2xl items-center justify-center overflow-x-auto">
-          <RestTimer />
+          <RestTimer suggestedSeconds={suggestedRest} />
         </div>
         <div className="mx-auto flex max-w-2xl items-center gap-3">
           <button

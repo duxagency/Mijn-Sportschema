@@ -12,7 +12,12 @@ import { CombineToggle } from "./CombineToggle";
 
 export type WorkoutExerciseWithExercise = Pick<
   Tables<"workout_exercises">,
-  "id" | "position" | "note" | "combined_with_previous" | TargetKey
+  | "id"
+  | "position"
+  | "note"
+  | "combined_with_previous"
+  | "rest_seconds"
+  | TargetKey
 > & {
   exercise: Tables<"exercises">;
 };
@@ -102,6 +107,7 @@ export function WorkoutExerciseCard({
             target_minutes: workoutExercise.target_minutes,
             target_distance: workoutExercise.target_distance,
           }}
+          restSeconds={workoutExercise.rest_seconds}
         />
       </div>
 
