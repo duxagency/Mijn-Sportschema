@@ -105,9 +105,11 @@ export async function removeWorkoutExercise(
   _formData: FormData,
 ): Promise<WorkoutFormState> {
   const supabase = await createClient();
+  // Soft-delete: markeer als inactief i.p.v. verwijderen, zodat de gelogde
+  // session_sets (historie, PR's, grafieken) behouden blijven.
   const { error } = await supabase
     .from("workout_exercises")
-    .delete()
+    .update({ is_active: false })
     .eq("id", workoutExerciseId);
 
   if (error) {

@@ -17,7 +17,7 @@ import { FormError } from "@/components/ui/FormError";
 
 type WorkoutExerciseRow = Pick<
   Tables<"workout_exercises">,
-  "id" | "position" | "note" | "combined_with_previous" | TargetKey
+  "id" | "position" | "note" | "combined_with_previous" | "is_active" | TargetKey
 > & { exercise: Tables<"exercises"> };
 
 const numToStr = (value: number | null) => (value == null ? "" : String(value));
@@ -75,7 +75,7 @@ export default async function SessionPage({
       supabase
         .from("workout_exercises")
         .select(
-          "id, position, note, combined_with_previous, target_sets, target_reps, target_weight, target_minutes, target_distance, exercise:exercises(*)",
+          "id, position, note, combined_with_previous, is_active, target_sets, target_reps, target_weight, target_minutes, target_distance, exercise:exercises(*)",
         )
         .eq("workout_id", session.workout_id)
         .order("position", { ascending: true }),
@@ -107,11 +107,17 @@ export default async function SessionPage({
   // Afgeronde training: alleen-lezen terugblik.
   // -------------------------------------------------------------------------
   if (session.finished_at) {
-    const reviewExercises: ReviewExercise[] = exercises.map((row) => ({
-      workoutExerciseId: row.id,
-      exercise: row.exercise,
-      targets: targetsOf(row),
-    }));
+    // Toon actieve oefeningen + verwijderde oefeningen die in déze training
+    // wel sets hebben (historie blijft zo zichtbaar).
+    const reviewExercises: ReviewExercise[] = exercises
+      .filter(
+        (row) => row.is_active || (setsByExercise[row.id]?.length ?? 0) > 0,
+      )
+      .map((row) => ({
+        workoutExerciseId: row.id,
+        exercise: row.exercise,
+        targets: targetsOf(row),
+      }));
 
     // Vorige afgeronde training van dit schema (vóór deze) → verbeteringen.
     const improvementByExercise: Record<
@@ -283,7 +289,9 @@ export default async function SessionPage({
     if (current == null || value > current) prByExerciseId.set(exId, value);
   }
 
-  const flowExercises: FlowExercise[] = exercises.map((row) => {
+  const flowExercises: FlowExercise[] = exercises
+    .filter((row) => row.is_active)
+    .map((row) => {
     const existing = setsByExercise[row.id] ?? [];
     const previous = previousSetsByExercise[row.id] ?? [];
     // Velden niet voorvullen: lege rijen op basis van het aantal target-sets.

@@ -106,6 +106,7 @@ export type Database = {
           target_distance: number | null;
           note: string | null;
           combined_with_previous: boolean;
+          is_active: boolean;
         };
         Insert: {
           id?: string;
@@ -119,6 +120,7 @@ export type Database = {
           target_distance?: number | null;
           note?: string | null;
           combined_with_previous?: boolean;
+          is_active?: boolean;
         };
         Update: {
           id?: string;
@@ -132,6 +134,7 @@ export type Database = {
           target_distance?: number | null;
           note?: string | null;
           combined_with_previous?: boolean;
+          is_active?: boolean;
         };
         Relationships: [
           {

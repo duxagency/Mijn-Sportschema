@@ -2,4 +2,4 @@
 // Wordt rechtsonder op het dashboard en de loginpagina getoond, zodat je kunt
 // zien welke versie live staat. Het commit-deel ernaast komt automatisch van
 // Vercel (VERCEL_GIT_COMMIT_SHA) en verandert sowieso elke deploy.
-export const APP_VERSION = "1.11.5";
+export const APP_VERSION = "1.12.0";

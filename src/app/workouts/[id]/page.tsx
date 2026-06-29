@@ -36,6 +36,7 @@ export default async function WorkoutDetailPage({
         "id, position, note, combined_with_previous, target_sets, target_reps, target_weight, target_minutes, target_distance, exercise:exercises(*)",
       )
       .eq("workout_id", id)
+      .eq("is_active", true)
       .order("position", { ascending: true }),
     supabase.from("exercises").select("id, name, category").order("name"),
   ]);
