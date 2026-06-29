@@ -144,6 +144,21 @@ export function TrainingFlow({
     );
   }
 
+  function copyPrevious(weId: string, previousSets: PreviousSet[]) {
+    if (previousSets.length === 0) return;
+    const toStr = (value: number | null) => (value == null ? "" : String(value));
+    setRowsByExercise((prev) => ({
+      ...prev,
+      [weId]: previousSets.map((set) => ({
+        reps: toStr(set.reps),
+        weight: toStr(set.weight),
+        minutes: toStr(set.minutes),
+        distance: toStr(set.distance),
+      })),
+    }));
+    setSaveError(null);
+  }
+
   function save(weId: string) {
     const rowsNow = rowsByExercise[weId];
     setSaveError(null);
@@ -251,6 +266,7 @@ export function TrainingFlow({
                 onAddSet={() => addSet(weId)}
                 onRemoveSet={(i) => removeSet(weId, i)}
                 onCellChange={(i, key, value) => changeCell(weId, i, key, value)}
+                onCopyPrevious={() => copyPrevious(weId, ex.previousSets)}
                 onSave={() => save(weId)}
                 saving={saving}
                 dirty={JSON.stringify(exRows) !== snapshot[weId]}

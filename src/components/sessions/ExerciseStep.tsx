@@ -28,6 +28,7 @@ export function ExerciseStep({
   onAddSet,
   onRemoveSet,
   onCellChange,
+  onCopyPrevious,
   onSave,
   saving,
   dirty,
@@ -42,6 +43,7 @@ export function ExerciseStep({
   onAddSet: () => void;
   onRemoveSet: (index: number) => void;
   onCellChange: (index: number, key: MeasurementKey, value: string) => void;
+  onCopyPrevious: () => void;
   onSave: () => void;
   saving: boolean;
   dirty: boolean;
@@ -85,6 +87,13 @@ export function ExerciseStep({
                     </li>
                   ))}
                 </ul>
+                <button
+                  type="button"
+                  onClick={onCopyPrevious}
+                  className="self-start text-neutral-400 underline underline-offset-2 transition hover:text-neutral-200"
+                >
+                  Kopieer naar invoer
+                </button>
               </div>
             )}
           </div>
