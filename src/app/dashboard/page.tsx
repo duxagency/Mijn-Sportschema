@@ -39,21 +39,22 @@ export default async function DashboardPage() {
       .order("created_at", { ascending: true }),
     supabase
       .from("sessions")
-      .select("workout_id, started_at, finished_at")
+      .select("id, workout_id, started_at, finished_at")
       .order("started_at", { ascending: false }),
   ]);
 
   const workouts = workoutsData ?? [];
   const sessions = sessionsData ?? [];
 
-  // Afgeronde trainingen → datums voor de kalender.
-  const doneDates = sessions
-    .filter((s) => s.finished_at)
-    .map((s) =>
-      new Date(s.finished_at as string).toLocaleDateString("en-CA", {
-        timeZone: "Europe/Amsterdam",
-      }),
-    );
+  // Afgeronde trainingen → datum → sessie-id (nieuwste die dag) voor de kalender.
+  const sessionByDate: Record<string, string> = {};
+  for (const s of sessions) {
+    if (!s.finished_at) continue;
+    const date = new Date(s.finished_at).toLocaleDateString("en-CA", {
+      timeZone: "Europe/Amsterdam",
+    });
+    if (!(date in sessionByDate)) sessionByDate[date] = s.id;
+  }
 
   // Snel starten: max 5 schema's, gesorteerd op de meest recente training.
   // Zonder enige training tonen we de eerst gemaakte schema's.
@@ -97,7 +98,7 @@ export default async function DashboardPage() {
       )}
 
       <div className="mt-6">
-        <WorkoutCalendar doneDates={doneDates} />
+        <WorkoutCalendar sessionByDate={sessionByDate} />
       </div>
 
       {quickStart.length > 0 && (
