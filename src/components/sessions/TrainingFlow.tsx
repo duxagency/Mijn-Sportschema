@@ -30,9 +30,15 @@ export type FlowExercise = {
   initialSets: SetInput[];
 };
 
-/** Heeft minstens één veld van één set een waarde? */
+/** Heeft minstens één meetwaarde van één set een waarde? */
 function hasData(rows: SetInput[]): boolean {
-  return rows.some((row) => Object.values(row).some((v) => v.trim() !== ""));
+  return rows.some(
+    (row) =>
+      row.reps.trim() !== "" ||
+      row.weight.trim() !== "" ||
+      row.minutes.trim() !== "" ||
+      row.distance.trim() !== "",
+  );
 }
 
 /** Groepeert opeenvolgende gecombineerde oefeningen tot supersets. */
@@ -144,6 +150,14 @@ export function TrainingFlow({
     );
   }
 
+  function toggleWarmup(weId: string, target: number) {
+    mutateRows(weId, (rows) =>
+      rows.map((row, i) =>
+        i === target ? { ...row, warmup: !row.warmup } : row,
+      ),
+    );
+  }
+
   function copyPrevious(weId: string, previousSets: PreviousSet[]) {
     if (previousSets.length === 0) return;
     const toStr = (value: number | null) => (value == null ? "" : String(value));
@@ -154,6 +168,7 @@ export function TrainingFlow({
         weight: toStr(set.weight),
         minutes: toStr(set.minutes),
         distance: toStr(set.distance),
+        warmup: false,
       })),
     }));
     setSaveError(null);
@@ -266,6 +281,7 @@ export function TrainingFlow({
                 onAddSet={() => addSet(weId)}
                 onRemoveSet={(i) => removeSet(weId, i)}
                 onCellChange={(i, key, value) => changeCell(weId, i, key, value)}
+                onToggleWarmup={(i) => toggleWarmup(weId, i)}
                 onCopyPrevious={() => copyPrevious(weId, ex.previousSets)}
                 onSave={() => save(weId)}
                 saving={saving}

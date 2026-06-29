@@ -34,9 +34,11 @@ const toSetInput = (set: Tables<"session_sets">): SetInput => ({
   weight: numToStr(set.weight),
   minutes: numToStr(set.minutes),
   distance: numToStr(set.distance),
+  warmup: set.is_warmup,
 });
 
-/** Hoogste waarde van de primaire meetwaarde over een set-lijst, of null. */
+/** Hoogste waarde van de primaire meetwaarde over een set-lijst, of null.
+ *  Warming-up-sets tellen niet mee. */
 function bestPrimaryValue(
   exercise: Tables<"exercises">,
   sets: Tables<"session_sets">[],
@@ -45,6 +47,7 @@ function bestPrimaryValue(
   if (!measurement) return null;
   let best: number | null = null;
   for (const set of sets) {
+    if (set.is_warmup) continue;
     const value = set[measurement.key];
     if (value != null && (best == null || value > best)) best = value;
   }
@@ -258,6 +261,7 @@ export default async function SessionPage({
       .order("set_number", { ascending: true });
 
     for (const set of previousSets ?? []) {
+      if (set.is_warmup) continue; // referentie/kopie = werksets
       (previousSetsByExercise[set.workout_exercise_id] ??= []).push(set);
     }
   }
@@ -275,7 +279,9 @@ export default async function SessionPage({
     supabase.from("workout_exercises").select("id, exercise_id"),
     supabase
       .from("session_sets")
-      .select("session_id, workout_exercise_id, reps, weight, minutes, distance"),
+      .select(
+        "session_id, workout_exercise_id, reps, weight, minutes, distance, is_warmup",
+      ),
   ]);
 
   const finishedIds = new Set((finishedSessions ?? []).map((s) => s.id));
@@ -284,6 +290,7 @@ export default async function SessionPage({
   );
   const prByExerciseId = new Map<string, number>();
   for (const set of allSets ?? []) {
+    if (set.is_warmup) continue;
     if (!finishedIds.has(set.session_id)) continue;
     const exId = weToExercise.get(set.workout_exercise_id);
     if (!exId) continue;

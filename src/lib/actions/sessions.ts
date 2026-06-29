@@ -131,6 +131,7 @@ export async function saveExerciseSets(
     session_id: string;
     workout_exercise_id: string;
     set_number: number;
+    is_warmup: boolean;
   }[] = [];
 
   let setNumber = 0;
@@ -144,6 +145,7 @@ export async function saveExerciseSets(
       session_id: sessionId,
       workout_exercise_id: workoutExerciseId,
       set_number: setNumber,
+      is_warmup: input.warmup,
       ...parsed.data,
     });
   }
@@ -192,6 +194,7 @@ export async function finishSession(
     session_id: string;
     workout_exercise_id: string;
     set_number: number;
+    is_warmup: boolean;
   }[] = [];
 
   for (const exercise of allSets) {
@@ -206,6 +209,7 @@ export async function finishSession(
         session_id: sessionId,
         workout_exercise_id: exercise.workoutExerciseId,
         set_number: setNumber,
+        is_warmup: input.warmup,
         ...parsed.data,
       });
     }

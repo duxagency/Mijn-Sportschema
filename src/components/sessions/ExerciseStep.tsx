@@ -28,6 +28,7 @@ export function ExerciseStep({
   onAddSet,
   onRemoveSet,
   onCellChange,
+  onToggleWarmup,
   onCopyPrevious,
   onSave,
   saving,
@@ -43,6 +44,7 @@ export function ExerciseStep({
   onAddSet: () => void;
   onRemoveSet: (index: number) => void;
   onCellChange: (index: number, key: MeasurementKey, value: string) => void;
+  onToggleWarmup: (index: number) => void;
   onCopyPrevious: () => void;
   onSave: () => void;
   saving: boolean;
@@ -107,9 +109,24 @@ export function ExerciseStep({
             className="rounded-lg border border-neutral-800 bg-neutral-900/40 p-3"
           >
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-neutral-300">
-                Set {index + 1}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-neutral-300">
+                  Set {index + 1}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onToggleWarmup(index)}
+                  aria-pressed={row.warmup}
+                  title="Warming-up (telt niet mee voor PR's en records)"
+                  className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide transition ${
+                    row.warmup
+                      ? "bg-amber-500/20 text-amber-300"
+                      : "text-neutral-600 hover:text-neutral-400"
+                  }`}
+                >
+                  Warm-up
+                </button>
+              </div>
               {rows.length > 1 && (
                 <button
                   type="button"

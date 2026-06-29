@@ -62,6 +62,11 @@ export function SessionReview({
                     <span className="text-neutral-200">
                       {formatSet(exercise, set)}
                     </span>
+                    {set.is_warmup && (
+                      <span className="text-xs text-amber-400">
+                        warming-up
+                      </span>
+                    )}
                   </li>
                 ))}
               </ol>

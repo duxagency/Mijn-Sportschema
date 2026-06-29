@@ -198,6 +198,7 @@ export type Database = {
           weight: number | null;
           minutes: number | null;
           distance: number | null;
+          is_warmup: boolean;
         };
         Insert: {
           id?: string;
@@ -208,6 +209,7 @@ export type Database = {
           weight?: number | null;
           minutes?: number | null;
           distance?: number | null;
+          is_warmup?: boolean;
         };
         Update: {
           id?: string;
@@ -218,6 +220,7 @@ export type Database = {
           weight?: number | null;
           minutes?: number | null;
           distance?: number | null;
+          is_warmup?: boolean;
         };
         Relationships: [
           {
