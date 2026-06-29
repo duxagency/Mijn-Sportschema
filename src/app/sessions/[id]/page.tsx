@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/types/database.types";
-import type { TargetKey } from "@/lib/targets";
+import type { TargetKey, TargetValues } from "@/lib/targets";
 import type { SetInput } from "@/lib/actions/session-types";
 import { EMPTY_SET } from "@/lib/actions/session-types";
 import { primaryMeasurement } from "@/lib/measurements";
@@ -23,6 +23,7 @@ type WorkoutExerciseRow = Pick<
   | "combined_with_previous"
   | "is_active"
   | "rest_seconds"
+  | "target_reps_max"
   | TargetKey
 > & { exercise: Tables<"exercises"> };
 
@@ -101,9 +102,10 @@ export default async function SessionPage({
     (setsByExercise[set.workout_exercise_id] ??= []).push(set);
   }
 
-  const targetsOf = (row: WorkoutExerciseRow): Record<TargetKey, number | null> => ({
+  const targetsOf = (row: WorkoutExerciseRow): TargetValues => ({
     target_sets: row.target_sets,
     target_reps: row.target_reps,
+    target_reps_max: row.target_reps_max,
     target_weight: row.target_weight,
     target_minutes: row.target_minutes,
     target_distance: row.target_distance,

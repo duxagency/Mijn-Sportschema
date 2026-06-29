@@ -17,6 +17,7 @@ export type WorkoutExerciseWithExercise = Pick<
   | "note"
   | "combined_with_previous"
   | "rest_seconds"
+  | "target_reps_max"
   | TargetKey
 > & {
   exercise: Tables<"exercises">;
@@ -103,6 +104,7 @@ export function WorkoutExerciseCard({
           targets={{
             target_sets: workoutExercise.target_sets,
             target_reps: workoutExercise.target_reps,
+            target_reps_max: workoutExercise.target_reps_max,
             target_weight: workoutExercise.target_weight,
             target_minutes: workoutExercise.target_minutes,
             target_distance: workoutExercise.target_distance,

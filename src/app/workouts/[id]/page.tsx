@@ -33,7 +33,7 @@ export default async function WorkoutDetailPage({
     supabase
       .from("workout_exercises")
       .select(
-        "id, position, note, combined_with_previous, rest_seconds, target_sets, target_reps, target_weight, target_minutes, target_distance, exercise:exercises(*)",
+        "id, position, note, combined_with_previous, rest_seconds, target_sets, target_reps, target_reps_max, target_weight, target_minutes, target_distance, exercise:exercises(*)",
       )
       .eq("workout_id", id)
       .eq("is_active", true)

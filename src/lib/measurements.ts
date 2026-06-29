@@ -1,5 +1,5 @@
 import type { MetricKey } from "@/lib/metrics";
-import type { TargetKey } from "@/lib/targets";
+import type { TargetKey, TargetValues } from "@/lib/targets";
 import type { Tables } from "@/types/database.types";
 
 /**
@@ -135,7 +135,7 @@ export function formatSetShort(
  */
 export function formatTargetReference(
   exercise: Pick<Tables<"exercises">, MetricKey>,
-  targets: Record<TargetKey, number | null>,
+  targets: TargetValues,
 ): string | null {
   const parts: string[] = [];
 
@@ -145,7 +145,16 @@ export function formatTargetReference(
 
   for (const measurement of visibleMeasurements(exercise)) {
     const value = targets[measurement.targetKey];
-    if (value != null) {
+    if (value == null) continue;
+
+    // Reps kan een range zijn (6–10) als de bovengrens hoger staat.
+    if (
+      measurement.key === "reps" &&
+      targets.target_reps_max != null &&
+      targets.target_reps_max > value
+    ) {
+      parts.push(`${value}–${targets.target_reps_max} ${measurement.unit}`);
+    } else {
       parts.push(`${value} ${measurement.unit}`);
     }
   }

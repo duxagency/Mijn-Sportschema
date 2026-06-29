@@ -267,10 +267,26 @@ export async function updateTargets(
     return { error: rest.error };
   }
 
+  const repsMax = parseOptionalInt(formData, "target_reps_max", "Reps (max)");
+  if (!repsMax.ok) {
+    return { error: repsMax.error };
+  }
+  if (
+    parsed.data.target_reps != null &&
+    repsMax.value != null &&
+    repsMax.value < parsed.data.target_reps
+  ) {
+    return { error: "Reps (max) mag niet lager zijn dan reps (min)." };
+  }
+
   const supabase = await createClient();
   const { error } = await supabase
     .from("workout_exercises")
-    .update({ ...parsed.data, rest_seconds: rest.value })
+    .update({
+      ...parsed.data,
+      rest_seconds: rest.value,
+      target_reps_max: repsMax.value,
+    })
     .eq("id", workoutExerciseId);
 
   if (error) {

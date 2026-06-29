@@ -108,6 +108,7 @@ export type Database = {
           combined_with_previous: boolean;
           is_active: boolean;
           rest_seconds: number | null;
+          target_reps_max: number | null;
         };
         Insert: {
           id?: string;
@@ -123,6 +124,7 @@ export type Database = {
           combined_with_previous?: boolean;
           is_active?: boolean;
           rest_seconds?: number | null;
+          target_reps_max?: number | null;
         };
         Update: {
           id?: string;
@@ -138,6 +140,7 @@ export type Database = {
           combined_with_previous?: boolean;
           is_active?: boolean;
           rest_seconds?: number | null;
+          target_reps_max?: number | null;
         };
         Relationships: [
           {

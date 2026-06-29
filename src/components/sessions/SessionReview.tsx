@@ -1,12 +1,12 @@
 import type { Tables } from "@/types/database.types";
-import type { TargetKey } from "@/lib/targets";
+import type { TargetValues } from "@/lib/targets";
 import { formatSet, formatTargetReference } from "@/lib/measurements";
 import { MetricBadges } from "@/components/exercises/MetricBadges";
 
 export type ReviewExercise = {
   workoutExerciseId: string;
   exercise: Tables<"exercises">;
-  targets: Record<TargetKey, number | null>;
+  targets: TargetValues;
 };
 
 export function SessionReview({

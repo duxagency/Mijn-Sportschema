@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Tables } from "@/types/database.types";
-import type { TargetKey } from "@/lib/targets";
+import type { TargetValues } from "@/lib/targets";
 import type { MeasurementKey } from "@/lib/measurements";
 import {
   EMPTY_SET,
@@ -21,7 +21,7 @@ import { NoteEditor } from "@/components/workouts/NoteEditor";
 export type FlowExercise = {
   workoutExerciseId: string;
   exercise: Tables<"exercises">;
-  targets: Record<TargetKey, number | null>;
+  targets: TargetValues;
   note: string | null;
   combinedWithPrevious: boolean;
   restSeconds: number | null;

@@ -13,6 +13,11 @@ export type TargetKey =
   | "target_minutes"
   | "target_distance";
 
+/** Target-waarden van een oefening, inclusief de optionele reps-bovengrens. */
+export type TargetValues = Record<TargetKey, number | null> & {
+  target_reps_max: number | null;
+};
+
 export const TARGET_FIELDS: readonly {
   key: TargetKey;
   label: string;

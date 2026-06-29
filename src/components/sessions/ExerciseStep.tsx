@@ -1,7 +1,7 @@
 "use client";
 
 import type { Tables } from "@/types/database.types";
-import type { TargetKey } from "@/lib/targets";
+import type { TargetValues } from "@/lib/targets";
 import {
   formatSetShort,
   formatTargetReference,
@@ -35,7 +35,7 @@ export function ExerciseStep({
   error,
 }: {
   exercise: Tables<"exercises">;
-  targets: Record<TargetKey, number | null>;
+  targets: TargetValues;
   previousSets: PreviousSet[];
   pr: { value: number; unit: string } | null;
   rows: SetInput[];
@@ -129,9 +129,14 @@ export function ExerciseStep({
                       onCellChange(index, measurement.key, event.target.value)
                     }
                     placeholder={
-                      targets[measurement.targetKey] != null
-                        ? String(targets[measurement.targetKey])
-                        : "—"
+                      measurement.key === "reps" &&
+                      targets.target_reps != null &&
+                      targets.target_reps_max != null &&
+                      targets.target_reps_max > targets.target_reps
+                        ? `${targets.target_reps}–${targets.target_reps_max}`
+                        : targets[measurement.targetKey] != null
+                          ? String(targets[measurement.targetKey])
+                          : "—"
                     }
                   />
                 ))}
