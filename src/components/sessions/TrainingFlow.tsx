@@ -221,6 +221,33 @@ export function TrainingFlow({
     window.scrollTo({ top: 0 });
   }
 
+  // "Volgende" slaat eerst de sets van de huidige (superset-)stap op en
+  // navigeert daarna pas. Bij een fout blijven we op de huidige stap.
+  function goNext() {
+    // In edit-modus slaan we niet per stap op (dat gaat via "Wijzigingen
+    // opslaan"); gewoon navigeren.
+    if (isEdit) {
+      goTo(index + 1);
+      return;
+    }
+    const group = currentGroup;
+    const nextIndex = index + 1;
+    setSaveError(null);
+    startSaving(async () => {
+      for (const ex of group) {
+        const weId = ex.workoutExerciseId;
+        const rowsNow = rowsByExercise[weId];
+        const result = await saveExerciseSets(sessionId, weId, rowsNow);
+        if (result.error) {
+          setSaveError({ id: weId, message: result.error });
+          return;
+        }
+        setSnapshot((prev) => ({ ...prev, [weId]: JSON.stringify(rowsNow) }));
+      }
+      goTo(nextIndex);
+    });
+  }
+
   function finish() {
     if (!isEdit && !confirm("Training afronden?")) return;
     setFinishError(null);
@@ -362,10 +389,11 @@ export function TrainingFlow({
           ) : (
             <button
               type="button"
-              onClick={() => goTo(index + 1)}
-              className="flex-1 rounded-lg bg-neutral-100 px-4 py-3 text-base font-semibold text-neutral-900 transition hover:bg-white"
+              onClick={goNext}
+              disabled={saving && !isEdit}
+              className="flex-1 rounded-lg bg-neutral-100 px-4 py-3 text-base font-semibold text-neutral-900 transition hover:bg-white disabled:cursor-not-allowed disabled:bg-neutral-400"
             >
-              Volgende →
+              {saving && !isEdit ? "Opslaan…" : "Volgende →"}
             </button>
           )}
         </div>
