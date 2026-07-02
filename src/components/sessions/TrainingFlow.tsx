@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Tables } from "@/types/database.types";
 import type { TargetValues } from "@/lib/targets";
-import type { MeasurementKey } from "@/lib/measurements";
+import { minutesToClock, type MeasurementKey } from "@/lib/measurements";
 import {
   EMPTY_SET,
   type ExerciseSets,
@@ -174,7 +174,7 @@ export function TrainingFlow({
       [weId]: previousSets.map((set) => ({
         reps: toStr(set.reps),
         weight: toStr(set.weight),
-        minutes: toStr(set.minutes),
+        minutes: set.minutes == null ? "" : minutesToClock(set.minutes),
         distance: toStr(set.distance),
         warmup: false,
       })),

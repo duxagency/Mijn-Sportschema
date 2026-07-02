@@ -66,6 +66,57 @@ export function visibleMeasurements(
   return MEASUREMENTS.filter((measurement) => exercise[measurement.requires]);
 }
 
+// -------------------------------------------------------------------------
+// Tijd: intern opgeslagen als decimale minuten, in/uitvoer als mm:ss.
+// -------------------------------------------------------------------------
+
+/** Decimale minuten → "m:ss" (bv. 0.75 → "0:45", 1.5 → "1:30"). */
+export function minutesToClock(minutes: number): string {
+  const totalSeconds = Math.round(minutes * 60);
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+/**
+ * Parset "mm:ss" of "m:ss" (of een los getal = minuten) naar decimale minuten.
+ * Geeft null bij ongeldige invoer.
+ */
+export function parseClock(raw: string): number | null {
+  const trimmed = raw.trim();
+  if (trimmed === "") return null;
+
+  if (trimmed.includes(":")) {
+    const parts = trimmed.split(":");
+    if (parts.length !== 2) return null;
+    const m = Number(parts[0]);
+    const s = Number(parts[1]);
+    if (
+      !Number.isInteger(m) ||
+      !Number.isInteger(s) ||
+      m < 0 ||
+      s < 0 ||
+      s > 59
+    ) {
+      return null;
+    }
+    return m + s / 60;
+  }
+
+  const n = Number(trimmed);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return n;
+}
+
+/** Formatteert één meetwaarde met eenheid; tijd als mm:ss. */
+export function formatMeasurementValue(
+  measurement: (typeof MEASUREMENTS)[number],
+  value: number,
+): string {
+  if (measurement.key === "minutes") return minutesToClock(value);
+  return `${value} ${measurement.unit}`;
+}
+
 // Volgorde waarin we de "belangrijkste" meetwaarde kiezen voor een grafiek:
 // gewicht zegt het meest over kracht, daarna reps, tijd, afstand.
 const CHART_PRIORITY: readonly MeasurementKey[] = [
@@ -95,7 +146,7 @@ export function formatSet(
   const parts = visibleMeasurements(exercise)
     .map((measurement) => {
       const value = set[measurement.key];
-      return value != null ? `${value} ${measurement.unit}` : null;
+      return value != null ? formatMeasurementValue(measurement, value) : null;
     })
     .filter((part): part is string => part !== null);
 
@@ -122,7 +173,7 @@ export function formatSetShort(
   const parts = visibleMeasurements(exercise)
     .map((measurement) => {
       const value = set[measurement.key];
-      return value != null ? `${value} ${measurement.unit}` : null;
+      return value != null ? formatMeasurementValue(measurement, value) : null;
     })
     .filter((part): part is string => part !== null);
 
@@ -155,7 +206,7 @@ export function formatTargetReference(
     ) {
       parts.push(`${value}–${targets.target_reps_max} ${measurement.unit}`);
     } else {
-      parts.push(`${value} ${measurement.unit}`);
+      parts.push(formatMeasurementValue(measurement, value));
     }
   }
 

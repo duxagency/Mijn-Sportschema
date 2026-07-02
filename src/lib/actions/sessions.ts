@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { MEASUREMENTS } from "@/lib/measurements";
+import { MEASUREMENTS, parseClock } from "@/lib/measurements";
 import type {
   ExerciseSets,
   SessionFormState,
@@ -35,6 +35,19 @@ function parseSetRow(
   for (const measurement of MEASUREMENTS) {
     const raw = String(input[measurement.key] ?? "").trim();
     if (raw === "") continue;
+
+    // Tijd komt binnen als mm:ss (of los getal = minuten).
+    if (measurement.key === "minutes") {
+      const parsed = parseClock(raw);
+      if (parsed === null) {
+        return {
+          ok: false,
+          error: `${measurement.label} moet in mm:ss staan (bv. 1:30).`,
+        };
+      }
+      data.minutes = parsed;
+      continue;
+    }
 
     const value = Number(raw);
     if (!Number.isFinite(value) || value < 0) {

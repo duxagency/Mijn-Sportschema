@@ -4,13 +4,19 @@ import { useState, useTransition } from "react";
 import { updateTargets } from "@/lib/actions/workouts";
 import { initialWorkoutFormState } from "@/lib/actions/workout-types";
 import { visibleTargetFields, type TargetValues } from "@/lib/targets";
+import { minutesToClock, parseClock } from "@/lib/measurements";
 import type { MetricKey } from "@/lib/metrics";
 import type { Tables } from "@/types/database.types";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { FormError } from "@/components/ui/FormError";
 
-type NumericField = { name: string; label: string; integer: boolean };
+type NumericField = {
+  name: string;
+  label: string;
+  integer: boolean;
+  clock?: boolean;
+};
 
 const str = (value: number | null) => (value == null ? "" : String(value));
 
@@ -37,6 +43,13 @@ export function TargetsForm({
         label: "Reps (max)",
         integer: true,
       });
+    } else if (field.key === "target_minutes") {
+      fields.push({
+        name: "target_minutes",
+        label: "Tijd (mm:ss)",
+        integer: false,
+        clock: true,
+      });
     } else {
       fields.push({ name: field.key, label: field.label, integer: field.integer });
     }
@@ -48,7 +61,10 @@ export function TargetsForm({
     target_reps: str(targets.target_reps),
     target_reps_max: str(targets.target_reps_max),
     target_weight: str(targets.target_weight),
-    target_minutes: str(targets.target_minutes),
+    target_minutes:
+      targets.target_minutes == null
+        ? ""
+        : minutesToClock(targets.target_minutes),
     target_distance: str(targets.target_distance),
     rest_seconds: str(restSeconds),
   }));
@@ -71,6 +87,15 @@ export function TargetsForm({
     for (const field of fields) {
       const raw = (values[field.name] ?? "").trim();
       if (raw === "") continue;
+
+      if (field.clock) {
+        if (parseClock(raw) === null) {
+          fieldErrors[field.name] = true;
+          if (!message) message = `${field.label} moet in mm:ss staan (bv. 1:30).`;
+        }
+        continue;
+      }
+
       const num = Number(raw);
       if (
         !Number.isFinite(num) ||
@@ -136,14 +161,16 @@ export function TargetsForm({
             key={field.name}
             label={field.label}
             name={field.name}
-            type="number"
-            inputMode={field.integer ? "numeric" : "decimal"}
-            min={0}
-            step={field.integer ? 1 : "any"}
+            type={field.clock ? "text" : "number"}
+            inputMode={
+              field.clock ? "numeric" : field.integer ? "numeric" : "decimal"
+            }
+            min={field.clock ? undefined : 0}
+            step={field.clock ? undefined : field.integer ? 1 : "any"}
             value={values[field.name] ?? ""}
             onChange={(event) => setVal(field.name, event.target.value)}
             error={Boolean(errors[field.name])}
-            placeholder="—"
+            placeholder={field.clock ? "mm:ss" : "—"}
           />
         ))}
       </div>

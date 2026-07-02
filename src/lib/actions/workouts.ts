@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { TARGET_FIELDS, type TargetKey } from "@/lib/targets";
+import { parseClock } from "@/lib/measurements";
 import type { WorkoutFormState } from "@/lib/actions/workout-types";
 
 // ---------------------------------------------------------------------------
@@ -216,6 +217,16 @@ function parseTargets(
 
     if (raw === "") {
       result[field.key] = null;
+      continue;
+    }
+
+    // Tijd-target komt binnen als mm:ss (of los getal = minuten).
+    if (field.key === "target_minutes") {
+      const parsed = parseClock(raw);
+      if (parsed === null) {
+        return { ok: false, error: `${field.label} moet in mm:ss staan (bv. 1:30).` };
+      }
+      result[field.key] = parsed;
       continue;
     }
 

@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Tables } from "@/types/database.types";
 import {
+  formatMeasurementValue,
+  minutesToClock,
   primaryMeasurement,
   visibleMeasurements,
 } from "@/lib/measurements";
@@ -103,7 +105,7 @@ export default async function RecordsPage() {
             const measurement = primaryMeasurement(exercise)!;
             const context = visibleMeasurements(exercise)
               .filter((m) => m.key !== measurement.key && set[m.key] != null)
-              .map((m) => `${set[m.key]} ${m.unit}`)
+              .map((m) => formatMeasurementValue(m, set[m.key] as number))
               .join(" · ");
 
             return (
@@ -121,12 +123,20 @@ export default async function RecordsPage() {
                   </p>
                 </div>
                 <div className="shrink-0 text-right">
-                  <span className="text-xl font-semibold text-neutral-100">
-                    {value}
-                  </span>{" "}
-                  <span className="text-sm text-neutral-400">
-                    {measurement.unit}
-                  </span>
+                  {measurement.key === "minutes" ? (
+                    <span className="text-xl font-semibold text-neutral-100">
+                      {minutesToClock(value)}
+                    </span>
+                  ) : (
+                    <>
+                      <span className="text-xl font-semibold text-neutral-100">
+                        {value}
+                      </span>{" "}
+                      <span className="text-sm text-neutral-400">
+                        {measurement.unit}
+                      </span>
+                    </>
+                  )}
                 </div>
               </li>
             );

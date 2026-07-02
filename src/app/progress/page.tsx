@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { primaryMeasurement } from "@/lib/measurements";
+import { minutesToClock, primaryMeasurement } from "@/lib/measurements";
 import { formatShortDate } from "@/lib/format";
 import { ProgressChart } from "@/components/progress/ProgressChart";
 
@@ -149,7 +149,9 @@ export default async function ProgressPage({
                   <span className="text-sm text-neutral-400">
                     Laatste:{" "}
                     <span className="font-medium text-neutral-100">
-                      {latest} {measurement.unit}
+                      {measurement.key === "minutes"
+                        ? minutesToClock(latest)
+                        : `${latest} ${measurement.unit}`}
                     </span>
                   </span>
                 )}

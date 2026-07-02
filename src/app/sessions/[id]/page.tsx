@@ -5,7 +5,7 @@ import type { Tables } from "@/types/database.types";
 import type { TargetKey, TargetValues } from "@/lib/targets";
 import type { SetInput } from "@/lib/actions/session-types";
 import { EMPTY_SET } from "@/lib/actions/session-types";
-import { primaryMeasurement } from "@/lib/measurements";
+import { minutesToClock, primaryMeasurement } from "@/lib/measurements";
 import { formatDuration, formatSessionDate } from "@/lib/format";
 import { TrainingFlow, type FlowExercise } from "@/components/sessions/TrainingFlow";
 import {
@@ -32,7 +32,7 @@ const numToStr = (value: number | null) => (value == null ? "" : String(value));
 const toSetInput = (set: Tables<"session_sets">): SetInput => ({
   reps: numToStr(set.reps),
   weight: numToStr(set.weight),
-  minutes: numToStr(set.minutes),
+  minutes: set.minutes == null ? "" : minutesToClock(set.minutes),
   distance: numToStr(set.distance),
   warmup: set.is_warmup,
 });

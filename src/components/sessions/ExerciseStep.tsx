@@ -5,6 +5,7 @@ import type { TargetValues } from "@/lib/targets";
 import {
   formatSetShort,
   formatTargetReference,
+  minutesToClock,
   visibleMeasurements,
   type MeasurementKey,
 } from "@/lib/measurements";
@@ -141,31 +142,44 @@ export function ExerciseStep({
 
             {measurements.length > 0 ? (
               <div className="mt-2 grid grid-cols-2 gap-3">
-                {measurements.map((measurement) => (
-                  <Input
-                    key={measurement.key}
-                    label={measurement.label}
-                    name={`${measurement.key}-${index}`}
-                    type="number"
-                    inputMode={measurement.integer ? "numeric" : "decimal"}
-                    min={0}
-                    step={measurement.integer ? 1 : "any"}
-                    value={row[measurement.key]}
-                    onChange={(event) =>
-                      onCellChange(index, measurement.key, event.target.value)
-                    }
-                    placeholder={
-                      measurement.key === "reps" &&
-                      targets.target_reps != null &&
-                      targets.target_reps_max != null &&
-                      targets.target_reps_max > targets.target_reps
-                        ? `${targets.target_reps}–${targets.target_reps_max}`
-                        : targets[measurement.targetKey] != null
-                          ? String(targets[measurement.targetKey])
-                          : "—"
-                    }
-                  />
-                ))}
+                {measurements.map((measurement) => {
+                  const isTime = measurement.key === "minutes";
+                  const targetValue = targets[measurement.targetKey];
+                  const placeholder = isTime
+                    ? targetValue != null
+                      ? minutesToClock(targetValue)
+                      : "mm:ss"
+                    : measurement.key === "reps" &&
+                        targets.target_reps != null &&
+                        targets.target_reps_max != null &&
+                        targets.target_reps_max > targets.target_reps
+                      ? `${targets.target_reps}–${targets.target_reps_max}`
+                      : targetValue != null
+                        ? String(targetValue)
+                        : "—";
+                  return (
+                    <Input
+                      key={measurement.key}
+                      label={isTime ? "Tijd (mm:ss)" : measurement.label}
+                      name={`${measurement.key}-${index}`}
+                      type={isTime ? "text" : "number"}
+                      inputMode={
+                        isTime
+                          ? "numeric"
+                          : measurement.integer
+                            ? "numeric"
+                            : "decimal"
+                      }
+                      min={isTime ? undefined : 0}
+                      step={isTime ? undefined : measurement.integer ? 1 : "any"}
+                      value={row[measurement.key]}
+                      onChange={(event) =>
+                        onCellChange(index, measurement.key, event.target.value)
+                      }
+                      placeholder={placeholder}
+                    />
+                  );
+                })}
               </div>
             ) : (
               <p className="mt-2 text-sm text-neutral-500">
