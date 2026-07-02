@@ -14,6 +14,7 @@ import { MetricBadges } from "@/components/exercises/MetricBadges";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { FormError } from "@/components/ui/FormError";
+import { Stopwatch } from "./Stopwatch";
 
 export type PreviousSet = Pick<
   Tables<"session_sets">,
@@ -157,9 +158,8 @@ export function ExerciseStep({
                       : targetValue != null
                         ? String(targetValue)
                         : "—";
-                  return (
+                  const input = (
                     <Input
-                      key={measurement.key}
                       label={isTime ? "Tijd (mm:ss)" : measurement.label}
                       name={`${measurement.key}-${index}`}
                       type={isTime ? "text" : "number"}
@@ -178,6 +178,22 @@ export function ExerciseStep({
                       }
                       placeholder={placeholder}
                     />
+                  );
+
+                  if (!isTime) return <div key={measurement.key}>{input}</div>;
+
+                  return (
+                    <div
+                      key={measurement.key}
+                      className="flex flex-col gap-1.5"
+                    >
+                      {input}
+                      <Stopwatch
+                        onStop={(value) =>
+                          onCellChange(index, measurement.key, value)
+                        }
+                      />
+                    </div>
                   );
                 })}
               </div>
