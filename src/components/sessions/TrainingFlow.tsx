@@ -248,6 +248,24 @@ export function TrainingFlow({
     });
   }
 
+  // Tijdens de training naar de schema-builder: eerst de huidige sets opslaan,
+  // dan navigeren (met de sessie-id zodat je makkelijk terug kunt).
+  function goEditSchema() {
+    setSaveError(null);
+    startSaving(async () => {
+      for (const ex of currentGroup) {
+        const weId = ex.workoutExerciseId;
+        const result = await saveExerciseSets(sessionId, weId, rowsByExercise[weId]);
+        if (result.error) {
+          setSaveError({ id: weId, message: result.error });
+          return;
+        }
+        setSnapshot((prev) => ({ ...prev, [weId]: JSON.stringify(rowsByExercise[weId]) }));
+      }
+      router.push(`/workouts/${workoutId}?session=${sessionId}`);
+    });
+  }
+
   function finish() {
     if (!isEdit && !confirm("Training afronden?")) return;
     setFinishError(null);
@@ -284,6 +302,16 @@ export function TrainingFlow({
           <h1 className="text-xl font-semibold text-neutral-100">
             {workoutName}
           </h1>
+          {!isEdit && (
+            <button
+              type="button"
+              onClick={goEditSchema}
+              disabled={saving}
+              className="mt-1 text-sm text-neutral-400 underline underline-offset-4 transition hover:text-neutral-200 disabled:opacity-50"
+            >
+              Schema aanpassen
+            </button>
+          )}
         </div>
         {isEdit ? (
           <Link

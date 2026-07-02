@@ -10,10 +10,13 @@ import { FormError } from "@/components/ui/FormError";
 
 export default async function WorkoutDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ session?: string }>;
 }) {
   const { id } = await params;
+  const { session: sessionId } = await searchParams;
   const supabase = await createClient();
 
   const { data: workout } = await supabase
@@ -48,10 +51,10 @@ export default async function WorkoutDetailPage({
       <header className="flex items-start justify-between gap-4 border-b border-neutral-800 pb-6">
         <div>
           <Link
-            href="/workouts"
+            href={sessionId ? `/sessions/${sessionId}` : "/workouts"}
             className="text-sm text-neutral-400 underline-offset-4 hover:text-neutral-200 hover:underline"
           >
-            ← Mijn schema&apos;s
+            {sessionId ? "← Terug naar training" : "← Mijn schema's"}
           </Link>
           <h1 className="mt-1 text-2xl font-semibold text-neutral-100">
             {workout.name}
@@ -60,10 +63,21 @@ export default async function WorkoutDetailPage({
         <DeleteWorkoutButton id={workout.id} name={workout.name} />
       </header>
 
-      {exercises.length > 0 && (
+      {sessionId ? (
         <section className="mt-6">
-          <StartTrainingButton workoutId={workout.id} />
+          <Link
+            href={`/sessions/${sessionId}`}
+            className="block w-full rounded-lg bg-neutral-100 px-4 py-3 text-center text-base font-semibold text-neutral-900 transition hover:bg-white"
+          >
+            ← Terug naar je training
+          </Link>
         </section>
+      ) : (
+        exercises.length > 0 && (
+          <section className="mt-6">
+            <StartTrainingButton workoutId={workout.id} />
+          </section>
+        )
       )}
 
       <section className="mt-6 rounded-xl border border-neutral-800 bg-neutral-950 p-5">
